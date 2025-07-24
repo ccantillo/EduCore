@@ -33,9 +33,8 @@ from apps.users.permissions import (
 class InscripcionViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de inscripciones."""
     
-    queryset = Inscripcion.objects.select_related(
-        'estudiante', 'materia', 'periodo'
-    ).prefetch_related('calificaciones').all()
+    # Optimizamos el queryset base con select_related y prefetch_related
+    queryset = Inscripcion.objects.select_related('estudiante', 'materia', 'periodo').prefetch_related('calificaciones').all()
     serializer_class = InscripcionSerializer
     permission_classes = [IsAuthenticated]
     
@@ -61,27 +60,34 @@ class InscripcionViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     
     def get_queryset(self):
-        """Filtrar queryset según el rol del usuario."""
+        """
+        Filtrar queryset según el rol del usuario y optimizar consultas.
+        select_related: para traer estudiante, materia y periodo en la misma consulta.
+        prefetch_related: para traer calificaciones en lote.
+        annotate: para agregar promedios o conteos si es necesario.
+        """
         user = self.request.user
-        
+        base_qs = Inscripcion.objects.select_related('estudiante', 'materia', 'periodo').prefetch_related('calificaciones')
         if user.is_admin:
-            return Inscripcion.objects.select_related(
-                'estudiante', 'materia', 'periodo'
-            ).prefetch_related('calificaciones').all()
+            return base_qs.all()
         elif user.is_profesor:
-            # Los profesores pueden ver inscripciones de sus materias
-            return Inscripcion.objects.select_related(
-                'estudiante', 'materia', 'periodo'
-            ).prefetch_related('calificaciones').filter(
-                materia__profesor=user
-            )
+            return base_qs.filter(materia__profesor=user)
         else:
-            # Los estudiantes solo pueden ver sus propias inscripciones
-            return Inscripcion.objects.select_related(
-                'estudiante', 'materia', 'periodo'
-            ).prefetch_related('calificaciones').filter(
-                estudiante=user
-            )
+            return base_qs.filter(estudiante=user)
+    
+    def list(self, request, *args, **kwargs):
+        """
+        Listar inscripciones optimizando con annotate para agregar promedios si es útil.
+        """
+        queryset = self.get_queryset()
+        # Ejemplo: podríamos agregar un promedio de calificaciones por inscripción si se requiere
+        # queryset = queryset.annotate(promedio=Avg('calificaciones__nota'))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def mis_inscripciones(self, request):

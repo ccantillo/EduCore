@@ -30,6 +30,7 @@ from apps.users.permissions import (
 class MateriaViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de materias."""
     
+    # Optimizamos el queryset base con select_related y prefetch_related
     queryset = Materia.objects.select_related('profesor').prefetch_related('prerrequisitos__prerrequisito').all()
     serializer_class = MateriaSerializer
     permission_classes = [IsAuthenticated]
@@ -56,21 +57,34 @@ class MateriaViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     
     def get_queryset(self):
-        """Filtrar queryset según el rol del usuario."""
+        """
+        Filtrar queryset según el rol del usuario y optimizar consultas.
+        select_related: para traer el profesor en la misma consulta.
+        prefetch_related: para traer los prerrequisitos en lote.
+        annotate: para contar estudiantes inscritos si es necesario.
+        """
         user = self.request.user
-        
+        base_qs = Materia.objects.select_related('profesor').prefetch_related('prerrequisitos__prerrequisito')
         if user.is_admin:
-            return Materia.objects.select_related('profesor').prefetch_related('prerrequisitos__prerrequisito').all()
+            return base_qs.all()
         elif user.is_profesor:
-            # Los profesores pueden ver sus materias asignadas y todas las materias activas
-            return Materia.objects.select_related('profesor').prefetch_related('prerrequisitos__prerrequisito').filter(
-                Q(profesor=user) | Q(estado='activa')
-            )
+            return base_qs.filter(Q(profesor=user) | Q(estado='activa'))
         else:
-            # Los estudiantes pueden ver solo materias activas
-            return Materia.objects.select_related('profesor').prefetch_related('prerrequisitos__prerrequisito').filter(
-                estado='activa'
-            )
+            return base_qs.filter(estado='activa')
+    
+    def list(self, request, *args, **kwargs):
+        """
+        Listar materias optimizando con annotate para contar estudiantes inscritos.
+        """
+        queryset = self.get_queryset().annotate(
+            estudiantes_inscritos_count=Count('inscripciones', filter=Q(inscripciones__estado='activa'))
+        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def mis_materias(self, request):

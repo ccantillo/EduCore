@@ -27,6 +27,7 @@ from apps.users.permissions import IsAdminUser, IsProfesorUser
 class ReporteViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de reportes generados."""
     
+    # El modelo ReporteGenerado no tiene relaciones complejas, por lo que no se requiere select_related ni prefetch_related aquí.
     queryset = ReporteGenerado.objects.all()
     serializer_class = ReporteGeneradoSerializer
     permission_classes = [IsAuthenticated]

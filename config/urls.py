@@ -45,7 +45,7 @@ urlpatterns = [
         path('materias/', include('apps.materias.urls')),
         path('inscripciones/', include('apps.inscripciones.urls')),
         path('notificaciones/', include('apps.notificaciones.urls')),
-        # path('reportes/', include('apps.reportes.urls')),
+        path('reportes/', include('apps.reportes.urls')),
     ])),
     
     # Documentación API

@@ -186,7 +186,16 @@ class ProfileViewSet(viewsets.ModelViewSet):
     
     queryset = Profile.objects.select_related('user').all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrProfesorOrSelf]
+    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        """Configurar permisos según la acción."""
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAdminOrProfesorOrSelf]
+        else:
+            permission_classes = [IsAuthenticated]
+        
+        return [permission() for permission in permission_classes]
     
     def get_queryset(self):
         """Filtrar queryset según el rol del usuario."""

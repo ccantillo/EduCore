@@ -219,14 +219,22 @@ class ReporteViewSet(viewsets.ModelViewSet):
             # Verificar que el reporte esté completado
             if not reporte.es_completado:
                 return Response(
-                    {'error': 'El reporte aún no está listo para descargar.'},
+                    {
+                        'error': 'El reporte aún no está listo para descargar.',
+                        'estado_actual': reporte.estado,
+                        'reporte_id': reporte.id
+                    },
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
             # Verificar que el archivo existe
-            if not os.path.exists(reporte.ruta_archivo):
+            if not reporte.ruta_archivo or not os.path.exists(reporte.ruta_archivo):
                 return Response(
-                    {'error': 'El archivo del reporte no se encuentra.'},
+                    {
+                        'error': 'El archivo del reporte no se encuentra.',
+                        'ruta_esperada': reporte.ruta_archivo,
+                        'reporte_id': reporte.id
+                    },
                     status=status.HTTP_404_NOT_FOUND
                 )
             
@@ -239,9 +247,21 @@ class ReporteViewSet(viewsets.ModelViewSet):
             
             return response
             
+        except ReporteGenerado.DoesNotExist:
+            return Response(
+                {
+                    'error': f'No se encontró el reporte con ID {pk}.',
+                    'mensaje': 'Verifique que el ID del reporte sea correcto.'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
         except Exception as e:
             return Response(
-                {'error': f'Error al descargar reporte: {str(e)}'},
+                {
+                    'error': f'Error al descargar reporte: {str(e)}',
+                    'reporte_id': pk,
+                    'tipo_error': type(e).__name__
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -361,7 +381,7 @@ class ReporteEstudianteViewSet(viewsets.ViewSet):
     def get_permissions(self):
         """Configurar permisos."""
         if self.action == 'create':
-            permission_classes = [IsAdminUser, IsProfesorUser]
+            permission_classes = [IsAdminUser]  # Only admin can create, but let professors access through the action method
         else:
             permission_classes = [IsAuthenticated]
         

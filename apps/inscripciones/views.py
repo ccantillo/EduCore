@@ -214,7 +214,7 @@ class CalificacionViewSet(viewsets.ModelViewSet):
     
     queryset = Calificacion.objects.select_related('inscripcion__estudiante', 'inscripcion__materia').all()
     serializer_class = CalificacionSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrProfesor]
+    permission_classes = [IsAuthenticated]
     
     def get_serializer_class(self):
         """Retornar el serializer apropiado según la acción."""
@@ -223,6 +223,15 @@ class CalificacionViewSet(viewsets.ModelViewSet):
         elif self.action == 'bulk_create':
             return CalificacionBulkCreateSerializer
         return CalificacionSerializer
+    
+    def get_permissions(self):
+        """Configurar permisos según la acción."""
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'bulk_create']:
+            permission_classes = [IsAdminOrProfesor]
+        else:
+            permission_classes = [IsAuthenticated]
+        
+        return [permission() for permission in permission_classes]
     
     def get_queryset(self):
         """Filtrar queryset según el rol del usuario."""

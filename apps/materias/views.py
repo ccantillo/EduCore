@@ -77,7 +77,7 @@ class MateriaViewSet(viewsets.ModelViewSet):
         Listar materias optimizando con annotate para contar estudiantes inscritos.
         """
         queryset = self.get_queryset().annotate(
-            estudiantes_inscritos_count=Count('inscripciones', filter=Q(inscripciones__estado='activa'))
+            total_estudiantes_inscritos=Count('inscripciones', filter=Q(inscripciones__estado='activa'))
         )
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -181,13 +181,22 @@ class PrerrequisitoViewSet(viewsets.ModelViewSet):
     
     queryset = Prerrequisito.objects.select_related('materia', 'prerrequisito').all()
     serializer_class = PrerrequisitoSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrProfesor]
+    permission_classes = [IsAuthenticated]
     
     def get_serializer_class(self):
         """Retornar el serializer apropiado según la acción."""
         if self.action == 'create':
             return PrerrequisitoCreateSerializer
         return PrerrequisitoSerializer
+    
+    def get_permissions(self):
+        """Configurar permisos según la acción."""
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAdminOrProfesor]
+        else:
+            permission_classes = [IsAuthenticated]
+        
+        return [permission() for permission in permission_classes]
     
     def get_queryset(self):
         """Filtrar queryset según el rol del usuario."""
@@ -223,13 +232,22 @@ class PeriodoViewSet(viewsets.ModelViewSet):
     
     queryset = Periodo.objects.all()
     serializer_class = PeriodoSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     
     def get_serializer_class(self):
         """Retornar el serializer apropiado según la acción."""
         if self.action == 'create':
             return PeriodoCreateSerializer
         return PeriodoSerializer
+    
+    def get_permissions(self):
+        """Configurar permisos según la acción."""
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'cambiar_estado']:
+            permission_classes = [IsAdminUser]
+        else:
+            permission_classes = [IsAuthenticated]
+        
+        return [permission() for permission in permission_classes]
     
     @action(detail=False, methods=['get'])
     def activos(self, request):

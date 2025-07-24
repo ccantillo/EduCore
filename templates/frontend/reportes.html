@@ -1,0 +1,597 @@
+{% extends 'frontend/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-file-earmark-text me-2"></i>
+        Reportes
+    </h1>
+    <div class="btn-group">
+        <button class="btn btn-primary" onclick="loadReportes()">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Actualizar Reportes
+        </button>
+        {% if user.role == 'admin' %}
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+            <i class="bi bi-plus-circle me-1"></i>
+            Generar Nuevo Reporte
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Report Cards -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="card-title">
+                            <i class="bi bi-person-lines-fill text-primary me-2"></i>
+                            Reporte de Estudiantes
+                        </h5>
+                        <p class="card-text text-muted">
+                            Descarga información completa de estudiantes incluyendo materias, calificaciones y promedios.
+                        </p>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-primary" onclick="generateEstudianteReport()">
+                        <i class="bi bi-download me-1"></i>
+                        Generar CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="card-title">
+                            <i class="bi bi-person-workspace text-success me-2"></i>
+                            Reporte de Profesores
+                        </h5>
+                        <p class="card-text text-muted">
+                            Descarga información de profesores con sus materias asignadas y estadísticas de estudiantes.
+                        </p>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-success" onclick="generateProfesorReport()">
+                        <i class="bi bi-download me-1"></i>
+                        Generar CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Report Builder -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-sliders me-2"></i>
+            Generador de Reportes Personalizado
+        </h5>
+    </div>
+    <div class="card-body">
+        <form id="customReportForm">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label for="reportType" class="form-label">Tipo de Reporte</label>
+                    <select class="form-select" id="reportType" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="estudiantes">Estudiantes</option>
+                        <option value="profesores">Profesores</option>
+                        <option value="materias">Materias</option>
+                        <option value="inscripciones">Inscripciones</option>
+                        <option value="calificaciones">Calificaciones</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="periodo" class="form-label">Período</label>
+                    <select class="form-select" id="periodo">
+                        <option value="">Todos los períodos</option>
+                        <option value="2024-1">2024-1</option>
+                        <option value="2024-2">2024-2</option>
+                        <option value="2025-1">2025-1</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select class="form-select" id="estado">
+                        <option value="">Todos los estados</option>
+                        <option value="activa">Activa</option>
+                        <option value="aprobada">Aprobada</option>
+                        <option value="reprobada">Reprobada</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Additional Filters -->
+            <div class="row g-3 mb-3" id="additionalFilters" style="display: none;">
+                <div class="col-md-6">
+                    <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                    <input type="date" class="form-control" id="fechaInicio">
+                </div>
+                <div class="col-md-6">
+                    <label for="fechaFin" class="form-label">Fecha Fin</label>
+                    <input type="date" class="form-control" id="fechaFin">
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" onclick="toggleAdvancedFilters()">
+                    <i class="bi bi-funnel me-1"></i>
+                    Filtros Avanzados
+                </button>
+                <button type="button" class="btn btn-primary" onclick="generateCustomReport()">
+                    <i class="bi bi-gear me-1"></i>
+                    Generar Reporte Personalizado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Recent Reports -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-clock-history me-2"></i>
+            Reportes Recientes
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Fecha Generación</th>
+                        <th>Estado</th>
+                        <th>Tamaño</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="recentReportsBody">
+                    <!-- Los reportes se cargarán dinámicamente aquí -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="alert alert-info d-none" id="noReportsAlert">
+            <i class="bi bi-info-circle me-2"></i>
+            No hay reportes generados aún. <a href="#" onclick="showGenerateModal()">¡Genera tu primer reporte!</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variables globales
+let reportesData = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadReportes();
+});
+
+function loadReportes() {
+    const loadingElement = document.getElementById('reportesLoading');
+    const containerElement = document.getElementById('reportesContainer');
+    const errorElement = document.getElementById('reportesError');
+    
+    // Reset states
+    if (loadingElement) {
+        loadingElement.classList.remove('d-none');
+        containerElement.classList.add('d-none');
+        errorElement.classList.add('d-none');
+    }
+    
+    fetch('/api/v1/reportes/reportes/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al cargar reportes');
+        return response.json();
+    })
+    .then(data => {
+        reportesData = data.results || data;
+        if (loadingElement) loadingElement.classList.add('d-none');
+        if (containerElement) containerElement.classList.remove('d-none');
+        renderReportes(reportesData);
+        updateReportesCount();
+    })
+    .catch(error => {
+        console.error('Error loading reportes:', error);
+        if (loadingElement) loadingElement.classList.add('d-none');
+        if (errorElement) errorElement.classList.remove('d-none');
+    });
+}
+
+function renderReportes(reportes) {
+    const tbody = document.getElementById('reportesTableBody');
+    const recentTbody = document.getElementById('recentReportsBody');
+    const emptyElement = document.getElementById('reportesEmpty');
+    const noReportsAlert = document.getElementById('noReportsAlert');
+    
+    // Si existe la tabla de reportes recientes, mostrar allí también
+    if (recentTbody) {
+        if (reportes.length === 0) {
+            recentTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay reportes disponibles</td></tr>';
+            if (noReportsAlert) noReportsAlert.classList.remove('d-none');
+        } else {
+            if (noReportsAlert) noReportsAlert.classList.add('d-none');
+            recentTbody.innerHTML = reportes.slice(0, 5).map(reporte => `
+                <tr>
+                    <td>
+                        <i class="bi bi-${getTypeIcon(reporte.tipo)} text-primary me-2"></i>
+                        ${getTypeDisplayName(reporte.tipo)}
+                    </td>
+                    <td>${formatDate(reporte.created_at)}</td>
+                    <td><span class="badge bg-${getStatusBadgeColor(reporte.estado)}">${reporte.estado}</span></td>
+                    <td>${reporte.registros_procesados || 0} registros</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="downloadReporte(${reporte.id})" 
+                                    ${reporte.estado !== 'completado' ? 'disabled' : ''} title="Descargar">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteReporte(${reporte.id})" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    }
+    
+    // Si existe la tabla principal de reportes, mostrar allí también
+    if (!tbody) return;
+    
+    if (reportes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No hay reportes disponibles</td></tr>';
+        if (emptyElement) emptyElement.classList.remove('d-none');
+        return;
+    }
+    
+    if (emptyElement) emptyElement.classList.add('d-none');
+    
+    tbody.innerHTML = reportes.map(reporte => `
+        <tr>
+            <td>${reporte.id}</td>
+            <td><strong>${reporte.nombre_archivo}</strong></td>
+            <td>${getTypeDisplayName(reporte.tipo)}</td>
+            <td><span class="badge bg-info">${reporte.tipo}</span></td>
+            <td>${formatDate(reporte.created_at)}</td>
+            <td>
+                <span class="badge bg-${getStatusBadgeColor(reporte.estado)}">${reporte.estado}</span>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="downloadReporte(${reporte.id})" 
+                            ${reporte.estado !== 'completado' ? 'disabled' : ''} title="Descargar">
+                        <i class="bi bi-download"></i>
+                    </button>
+                    <button class="btn btn-outline-info" onclick="viewReporte(${reporte.id})" title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    {% if user.role == 'admin' %}
+                    <button class="btn btn-outline-danger" onclick="deleteReporte(${reporte.id})" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateReportesCount() {
+    const countElement = document.getElementById('reportesCount');
+    if (countElement) {
+        countElement.textContent = reportesData.length;
+    }
+}
+
+function generateEstudianteReport() {
+    showLoadingMessage('Generando reporte de estudiantes...');
+    
+    fetch('/api/v1/reportes/estudiantes/{{ user.id }}/reporte/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al generar reporte');
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte_estudiantes_${new Date().toISOString().split('T')[0]}.csv`;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        window.URL.revokeObjectURL(url);
+        showAlert('success', 'Reporte de estudiantes descargado exitosamente');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error al generar el reporte de estudiantes');
+    });
+}
+
+function generateProfesorReport() {
+    showLoadingMessage('Generando reporte de profesores...');
+    
+    fetch('/api/v1/reportes/profesores/{{ user.id }}/reporte/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al generar reporte');
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte_profesores_${new Date().toISOString().split('T')[0]}.csv`;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        window.URL.revokeObjectURL(url);
+        showAlert('success', 'Reporte de profesores descargado exitosamente');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error al generar el reporte de profesores');
+    });
+}
+
+function generateCustomReport() {
+    const reportType = document.getElementById('reportType').value;
+    const periodo = document.getElementById('periodo').value;
+    const estado = document.getElementById('estado').value;
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+    
+    if (!reportType) {
+        showAlert('warning', 'Por favor selecciona un tipo de reporte');
+        return;
+    }
+    
+    showLoadingMessage(`Generando reporte personalizado de ${reportType}...`);
+    
+    // Construir parámetros para la llamada a la API
+    const params = new URLSearchParams();
+    if (periodo) params.append('periodo', periodo);
+    if (estado) params.append('estado', estado);
+    if (fechaInicio) params.append('fecha_inicio', fechaInicio);
+    if (fechaFin) params.append('fecha_fin', fechaFin);
+    params.append('formato', 'csv');
+    
+    fetch(`/api/v1/reportes/reportes/personalizado/?tipo=${reportType}&${params.toString()}`, {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al generar reporte personalizado');
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte_${reportType}_personalizado_${new Date().toISOString().split('T')[0]}.csv`;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        window.URL.revokeObjectURL(url);
+        showAlert('success', 'Reporte personalizado descargado exitosamente');
+        
+        // Limpiar el formulario
+        document.getElementById('customReportForm').reset();
+        document.getElementById('additionalFilters').style.display = 'none';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error al generar el reporte personalizado');
+    });
+}
+
+function downloadReporte(reporteId) {
+    showLoadingMessage('Preparando descarga...');
+    
+    fetch(`/api/v1/reportes/reportes/${reporteId}/descargar/`, {
+        headers: {
+            'Authorization': getAuthHeader()
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al descargar reporte');
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte_${reporteId}_${new Date().toISOString().split('T')[0]}.csv`;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        window.URL.revokeObjectURL(url);
+        showAlert('success', 'Reporte descargado exitosamente');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error al descargar el reporte');
+    });
+}
+
+function viewReporte(reporteId) {
+    const reporte = reportesData.find(r => r.id === reporteId);
+    if (!reporte) return;
+    
+    // Mostrar detalles del reporte en un modal o expandir información
+    showAlert('info', `Visualizando detalles del reporte: ${reporte.titulo}`);
+}
+
+function deleteReporte(reporteId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este reporte? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    fetch(`/api/v1/reportes/reportes/${reporteId}/`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'X-CSRFToken': csrftoken
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al eliminar reporte');
+        showAlert('success', 'Reporte eliminado exitosamente');
+        loadReportes(); // Recargar lista
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error al eliminar el reporte');
+    });
+}
+
+function toggleAdvancedFilters() {
+    const filtersDiv = document.getElementById('additionalFilters');
+    const isVisible = filtersDiv.style.display !== 'none';
+    
+    filtersDiv.style.display = isVisible ? 'none' : 'block';
+    
+    const button = event.target.closest('button');
+    button.innerHTML = isVisible 
+        ? '<i class="bi bi-funnel me-1"></i>Filtros Avanzados'
+        : '<i class="bi bi-funnel-fill me-1"></i>Ocultar Filtros';
+}
+
+// Funciones de utilidad para reportes
+function getAuthHeader() {
+    const token = localStorage.getItem('access_token');
+    return token ? `Bearer ${token}` : '';
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function getStatusBadgeColor(estado) {
+    const colors = {
+        'generando': 'warning',
+        'completado': 'success',
+        'error': 'danger',
+        'pendiente': 'secondary'
+    };
+    return colors[estado] || 'secondary';
+}
+
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer') || createAlertContainer();
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'}-fill me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    alertContainer.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function showLoadingMessage(message) {
+    showAlert('info', message);
+}
+
+function createAlertContainer() {
+    const container = document.createElement('div');
+    container.id = 'alertContainer';
+    container.style.position = 'fixed';
+    container.style.top = '80px';
+    container.style.right = '20px';
+    container.style.zIndex = '9999';
+    container.style.maxWidth = '400px';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Funciones heredadas para compatibilidad
+function downloadReport(reportId) {
+    downloadReporte(reportId);
+}
+
+function deleteReport(reportId) {
+    deleteReporte(reportId);
+}
+
+function getTypeIcon(tipo) {
+    const icons = {
+        'estudiante': 'person-lines-fill',
+        'profesor': 'person-workspace',
+        'general': 'file-earmark-bar-graph',
+        'materia': 'book',
+        'periodo': 'calendar-range'
+    };
+    return icons[tipo] || 'file-earmark';
+}
+
+function getTypeDisplayName(tipo) {
+    const names = {
+        'estudiante': 'Reporte de Estudiante',
+        'profesor': 'Reporte de Profesor',
+        'general': 'Reporte General',
+        'materia': 'Reporte de Materia',
+        'periodo': 'Reporte de Período'
+    };
+    return names[tipo] || tipo;
+}
+</script>
+{% endblock %} 

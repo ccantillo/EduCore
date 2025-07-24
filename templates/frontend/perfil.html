@@ -1,0 +1,676 @@
+{% extends 'frontend/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-person-circle me-2"></i>
+        Mi Perfil
+    </h1>
+    <div class="btn-group">
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <i class="bi bi-pencil me-1"></i>Editar Perfil
+        </button>
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+            <i class="bi bi-key me-1"></i>Cambiar Contraseña
+        </button>
+    </div>
+</div>
+
+<!-- User Info Cards -->
+<div class="row">
+    <!-- Basic Info Card -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person me-2"></i>
+                    Información Personal
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="userInfoContainer">
+                    <!-- Se carga dinámicamente -->
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando información...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Extended Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Información Adicional
+                </h5>
+            </div>
+            <div class="card-body" id="profileInfoContainer">
+                <!-- Se carga dinámicamente -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Card -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Estadísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/120x120/007bff/ffffff?text={{ user.username|first|upper }}" 
+                         class="rounded-circle mb-3" alt="Avatar">
+                    <h6>{{ user.get_full_name|default:user.username }}</h6>
+                    <p class="text-muted mb-3">{{ user.get_role_display }}</p>
+                    
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary mb-0" id="userDays">0</h4>
+                            <small class="text-muted">Días activo</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-0" id="userScore">100</h4>
+                            <small class="text-muted">Puntuación</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Actividad Reciente
+                </h5>
+            </div>
+            <div class="card-body" id="recentActivityContainer">
+                <div class="text-center text-muted">
+                    <i class="bi bi-clock h4"></i>
+                    <p class="mb-0">Cargando actividad...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Usuarios (Solo Admin) -->
+{% if user.role == 'admin' %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-people me-2"></i>
+            Gestión de Usuarios
+        </h5>
+        <button class="btn btn-primary btn-sm" onclick="loadAllUsers()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+        </button>
+    </div>
+    <div class="card-body">
+        <!-- Filters -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="userSearch" placeholder="Buscar usuarios...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="roleFilter">
+                    <option value="">Todos los roles</option>
+                    <option value="admin">Administrador</option>
+                    <option value="profesor">Profesor</option>
+                    <option value="estudiante">Estudiante</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="statusFilter">
+                    <option value="">Todos los estados</option>
+                    <option value="true">Activos</option>
+                    <option value="false">Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" onclick="clearUserFilters()">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Fecha Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando usuarios...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Edit Profile -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>Editar Perfil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="firstName" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="firstName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lastName" class="form-label">Apellido *</label>
+                            <input type="text" class="form-control" id="lastName" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="birthDate" class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" id="birthDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Dirección</label>
+                        <textarea class="form-control" id="address" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="saveProfile()">
+                    <i class="bi bi-check-circle me-1"></i>Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Change Password -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-key me-2"></i>Cambiar Contraseña
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label for="oldPassword" class="form-label">Contraseña Actual *</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="oldPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('oldPassword')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Nueva Contraseña *</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('newPassword')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            Mínimo 8 caracteres, debe incluir letras y números.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirmar Nueva Contraseña *</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="changePassword()">
+                    <i class="bi bi-shield-check me-1"></i>Cambiar Contraseña
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentUserData = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserProfile();
+    {% if user.role == 'admin' %}
+    loadAllUsers();
+    setupUserFilters();
+    {% endif %}
+});
+
+// Cargar información del usuario actual
+function loadUserProfile() {
+    fetch('/api/v1/users/users/me/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al cargar perfil');
+        return response.json();
+    })
+    .then(data => {
+        currentUserData = data;
+        renderUserInfo(data);
+        loadUserProfileExtended(data.id);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showUserInfoError();
+    });
+}
+
+// Cargar información extendida del perfil
+function loadUserProfileExtended(userId) {
+    fetch(`/api/v1/users/users/${userId}/profile/`, {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderProfileInfo(data);
+    })
+    .catch(error => {
+        console.error('Error loading profile:', error);
+        document.getElementById('profileInfoContainer').innerHTML = 
+            '<p class="text-muted">No se pudo cargar la información adicional</p>';
+    });
+}
+
+// Renderizar información básica del usuario
+function renderUserInfo(user) {
+    const container = document.getElementById('userInfoContainer');
+    const activeDays = Math.floor((new Date() - new Date(user.date_joined)) / (1000 * 60 * 60 * 24));
+    
+    container.innerHTML = `
+        <div class="col-md-6">
+            <table class="table table-borderless">
+                <tr>
+                    <td><strong>Usuario:</strong></td>
+                    <td>${user.username}</td>
+                </tr>
+                <tr>
+                    <td><strong>Nombre:</strong></td>
+                    <td>${user.first_name || 'No especificado'}</td>
+                </tr>
+                <tr>
+                    <td><strong>Apellido:</strong></td>
+                    <td>${user.last_name || 'No especificado'}</td>
+                </tr>
+                <tr>
+                    <td><strong>Email:</strong></td>
+                    <td>${user.email}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <table class="table table-borderless">
+                <tr>
+                    <td><strong>Rol:</strong></td>
+                    <td><span class="badge bg-secondary">${user.role_display}</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Teléfono:</strong></td>
+                    <td>${user.phone || 'No especificado'}</td>
+                </tr>
+                <tr>
+                    <td><strong>Estado:</strong></td>
+                    <td><span class="badge bg-${user.is_active ? 'success' : 'danger'}">${user.is_active ? 'Activo' : 'Inactivo'}</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Registro:</strong></td>
+                    <td>${formatDate(user.date_joined)}</td>
+                </tr>
+            </table>
+        </div>
+    `;
+    
+    // Actualizar estadísticas
+    document.getElementById('userDays').textContent = activeDays;
+    
+    // Llenar formulario de edición
+    fillEditForm(user);
+}
+
+// Renderizar información del perfil extendido
+function renderProfileInfo(profile) {
+    const container = document.getElementById('profileInfoContainer');
+    
+    container.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Fecha de Nacimiento:</strong> 
+                   ${profile.birth_date ? formatDate(profile.birth_date) : 'No especificada'}</p>
+                <p><strong>Dirección:</strong> 
+                   ${profile.address || 'No especificada'}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>ID Estudiante:</strong> 
+                   ${profile.student_id || 'N/A'}</p>
+                <p><strong>ID Profesional:</strong> 
+                   ${profile.professional_id || 'N/A'}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Llenar formulario de edición
+function fillEditForm(user) {
+    document.getElementById('firstName').value = user.first_name || '';
+    document.getElementById('lastName').value = user.last_name || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phone || '';
+}
+
+// Guardar cambios del perfil
+function saveProfile() {
+    const formData = {
+        first_name: document.getElementById('firstName').value,
+        last_name: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value
+    };
+    
+    // Actualizar usuario
+    fetch(`/api/v1/users/users/${currentUserData.id}/`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al actualizar perfil');
+        return response.json();
+    })
+    .then(data => {
+        // Actualizar perfil extendido
+        const profileData = {
+            birth_date: document.getElementById('birthDate').value || null,
+            address: document.getElementById('address').value || ''
+        };
+        
+        return fetch(`/api/v1/users/users/${currentUserData.id}/update_profile/`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': getAuthHeader(),
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(profileData)
+        });
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al actualizar perfil extendido');
+        return response.json();
+    })
+    .then(data => {
+        showAlert('success', 'Perfil actualizado exitosamente');
+        bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+        loadUserProfile(); // Recargar información
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error al actualizar el perfil');
+    });
+}
+
+// Cambiar contraseña
+function changePassword() {
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (newPassword !== confirmPassword) {
+        showAlert('danger', 'Las contraseñas no coinciden');
+        return;
+    }
+    
+    if (newPassword.length < 8) {
+        showAlert('danger', 'La contraseña debe tener al menos 8 caracteres');
+        return;
+    }
+    
+    fetch('/api/v1/users/users/change_password/', {
+        method: 'POST',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            old_password: oldPassword,
+            new_password: newPassword,
+            new_password_confirm: confirmPassword
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al cambiar contraseña');
+        return response.json();
+    })
+    .then(data => {
+        showAlert('success', 'Contraseña cambiada exitosamente');
+        bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+        document.getElementById('changePasswordForm').reset();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error al cambiar la contraseña. Verifica tu contraseña actual.');
+    });
+}
+
+{% if user.role == 'admin' %}
+// Cargar lista de todos los usuarios (Solo Admin)
+function loadAllUsers() {
+    fetch('/api/v1/users/users/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al cargar usuarios');
+        return response.json();
+    })
+    .then(data => {
+        renderUsersTable(data.results || data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('usersTableBody').innerHTML = 
+            '<tr><td colspan="7" class="text-center text-danger">Error al cargar usuarios</td></tr>';
+    });
+}
+
+// Renderizar tabla de usuarios
+function renderUsersTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No hay usuarios para mostrar</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = users.map(user => `
+        <tr>
+            <td>
+                <div class="d-flex align-items-center">
+                    <img src="https://via.placeholder.com/32x32/007bff/ffffff?text=${user.username[0].toUpperCase()}" 
+                         class="rounded-circle me-2" width="32" height="32" alt="Avatar">
+                    <strong>${user.username}</strong>
+                </div>
+            </td>
+            <td>${user.first_name || ''} ${user.last_name || ''}</td>
+            <td>${user.email}</td>
+            <td><span class="badge bg-secondary">${user.role_display || user.role}</span></td>
+            <td>
+                <span class="badge bg-${user.is_active ? 'success' : 'danger'}">
+                    ${user.is_active ? 'Activo' : 'Inactivo'}
+                </span>
+            </td>
+            <td>${formatDate(user.date_joined)}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="viewUserDetail(${user.id})" title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="editUser(${user.id})" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-${user.is_active ? 'warning' : 'success'}" 
+                            onclick="toggleUserStatus(${user.id}, ${user.is_active})" 
+                            title="${user.is_active ? 'Desactivar' : 'Activar'}">
+                        <i class="bi bi-${user.is_active ? 'pause' : 'play'}"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Configurar filtros de usuarios
+function setupUserFilters() {
+    document.getElementById('userSearch').addEventListener('input', filterUsers);
+    document.getElementById('roleFilter').addEventListener('change', filterUsers);
+    document.getElementById('statusFilter').addEventListener('change', filterUsers);
+}
+
+function filterUsers() {
+    // Implementar filtrado de usuarios
+    loadAllUsers(); // Por simplicidad, recargamos
+}
+
+function clearUserFilters() {
+    document.getElementById('userSearch').value = '';
+    document.getElementById('roleFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    loadAllUsers();
+}
+{% endif %}
+
+// Utilidades
+function getAuthHeader() {
+    // Si existe token JWT, usarlo, sino usar sesión actual
+    const token = localStorage.getItem('access_token');
+    return token ? `Bearer ${token}` : '';
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = field.nextElementSibling.querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        field.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+function showUserInfoError() {
+    document.getElementById('userInfoContainer').innerHTML = 
+        '<div class="col-12 text-center text-danger"><p>Error al cargar la información del usuario</p></div>';
+}
+
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer') || createAlertContainer();
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}-fill me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    alertContainer.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function createAlertContainer() {
+    const container = document.createElement('div');
+    container.id = 'alertContainer';
+    container.style.position = 'fixed';
+    container.style.top = '80px';
+    container.style.right = '20px';
+    container.style.zIndex = '9999';
+    container.style.maxWidth = '400px';
+    document.body.appendChild(container);
+    return container;
+}
+</script>
+{% endblock %} 

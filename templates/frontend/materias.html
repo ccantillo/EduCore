@@ -1,0 +1,924 @@
+{% extends 'frontend/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-book me-2"></i>
+        Materias
+    </h1>
+    <div class="btn-group">
+        {% if user.role == 'admin' or user.role == 'profesor' %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createMateriaModal">
+            <i class="bi bi-plus-circle me-1"></i>
+            Nueva Materia
+        </button>
+        {% endif %}
+        
+        {% if user.role == 'estudiante' %}
+        <button class="btn btn-success" onclick="loadMateriasDisponibles()">
+            <i class="bi bi-search me-1"></i>
+            Materias Disponibles
+        </button>
+        {% endif %}
+        
+        {% if user.role == 'profesor' %}
+        <button class="btn btn-info" onclick="loadMisMaterias()">
+            <i class="bi bi-book-half me-1"></i>
+            Mis Materias
+        </button>
+        {% endif %}
+        
+        <button class="btn btn-outline-secondary" onclick="loadMaterias()">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Actualizar
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="searchMateria" class="form-label">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="searchMateria" placeholder="Nombre o código...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="filterEstado" class="form-label">Estado</label>
+                <select class="form-select" id="filterEstado">
+                    <option value="">Todos</option>
+                    <option value="activa">Activa</option>
+                    <option value="inactiva">Inactiva</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filterProfesor" class="form-label">Profesor</label>
+                <select class="form-select" id="filterProfesor">
+                    <option value="">Todos</option>
+                    <option value="asignado">Con profesor</option>
+                    <option value="sin_asignar">Sin asignar</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading -->
+<div class="loading" id="materiasLoading">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando materias...</p>
+</div>
+
+<!-- Materias List -->
+<div class="d-none" id="materiasContainer">
+    <div class="row" id="materiasGrid">
+        <!-- Las materias se cargarán aquí dinámicamente -->
+    </div>
+    
+    <!-- Empty State -->
+    <div class="alert alert-info d-none" id="materiasEmpty">
+        <i class="bi bi-info-circle me-2"></i>
+        No se encontraron materias que coincidan con los filtros aplicados.
+    </div>
+</div>
+
+<!-- Error State -->
+<div class="alert alert-danger d-none" id="materiasError">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Error al cargar las materias. <a href="#" onclick="loadMaterias()">Intentar nuevamente</a>
+</div>
+
+<!-- Modal for Create Materia (Admin/Profesor) -->
+{% if user.role == 'admin' or user.role == 'profesor' %}
+<div class="modal fade" id="createMateriaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Nueva Materia
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createMateriaForm">
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label">Código *</label>
+                        <input type="text" class="form-control" id="codigo" required placeholder="Ej: MAT101">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="nombre" required placeholder="Ej: Cálculo I">
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" rows="3" placeholder="Descripción de la materia..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="creditos" class="form-label">Créditos *</label>
+                            <input type="number" class="form-control" id="creditos" min="1" max="10" required value="3">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado">
+                                <option value="activa">Activa</option>
+                                <option value="inactiva">Inactiva</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="createMateria()">Crear Materia</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal for Materia Details -->
+<div class="modal fade" id="materiaDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="materiaDetailTitle">
+                    <i class="bi bi-book me-2"></i>
+                    Detalles de la Materia
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="materiaDetailBody">
+                <!-- Contenido se carga dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                {% if user.role == 'estudiante' %}
+                <button type="button" class="btn btn-success" id="inscribirseBtn" onclick="inscribirseMateria()">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Inscribirse
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Prerrequisitos Management -->
+{% if user.role == 'admin' or user.role == 'profesor' %}
+<div class="modal fade" id="prerrequisitosModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="prerrequisitosModalTitle">
+                    <i class="bi bi-diagram-3 me-2"></i>
+                    Gestión de Prerrequisitos
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Materia Info -->
+                <div class="alert alert-info" id="materiaInfo">
+                    <strong id="materiaInfoText">Selecciona una materia</strong>
+                </div>
+                
+                <!-- Prerrequisitos existentes -->
+                <div class="mb-4">
+                    <h6>Prerrequisitos Actuales</h6>
+                    <div id="currentPrerrequisitos">
+                        <div class="text-center text-muted">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Cargando prerrequisitos...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Agregar nuevo prerrequisito -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Agregar Prerrequisito</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="addPrerrequisiteForm">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label for="prerrequisiteMateria" class="form-label">Materia Prerrequisito *</label>
+                                    <select class="form-select" id="prerrequisiteMateria" required>
+                                        <option value="">Selecciona una materia...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="prerrequisiteType" class="form-label">Tipo *</label>
+                                    <select class="form-select" id="prerrequisiteType" required>
+                                        <option value="obligatorio">Obligatorio</option>
+                                        <option value="recomendado">Recomendado</option>
+                                        <option value="correquisito">Correquisito</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-primary" onclick="addPrerrequisito()">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Agregar Prerrequisito
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let materiasData = [];
+let currentMateriaId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadMaterias();
+    
+    // Search and filter listeners
+    document.getElementById('searchMateria').addEventListener('input', debounce(handleSearch, 500));
+    document.getElementById('filterEstado').addEventListener('change', filterMaterias);
+    document.getElementById('filterProfesor').addEventListener('change', filterMaterias);
+});
+
+function loadMaterias() {
+    const loadingElement = document.getElementById('materiasLoading');
+    const containerElement = document.getElementById('materiasContainer');
+    const errorElement = document.getElementById('materiasError');
+    
+    // Reset states
+    loadingElement.classList.remove('d-none');
+    containerElement.classList.add('d-none');
+    errorElement.classList.add('d-none');
+    
+    fetch('{% url "frontend:api_materias" %}')
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        materiasData = data.materias || [];
+        loadingElement.classList.add('d-none');
+        containerElement.classList.remove('d-none');
+        renderMaterias(materiasData);
+    })
+    .catch(error => {
+        console.error('Error loading materias:', error);
+        loadingElement.classList.add('d-none');
+        errorElement.classList.remove('d-none');
+    });
+}
+
+function renderMaterias(materias) {
+    const gridElement = document.getElementById('materiasGrid');
+    const emptyElement = document.getElementById('materiasEmpty');
+    
+    if (materias.length === 0) {
+        gridElement.innerHTML = '';
+        emptyElement.classList.remove('d-none');
+        return;
+    }
+    
+    emptyElement.classList.add('d-none');
+    
+    gridElement.innerHTML = materias.map(materia => `
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">${materia.codigo}</h5>
+                        <span class="badge bg-${materia.estado === 'activa' ? 'success' : 'secondary'}">${materia.estado}</span>
+                    </div>
+                    <h6 class="card-subtitle text-muted mb-3">${materia.nombre}</h6>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">
+                                <i class="bi bi-award me-1"></i>
+                                ${materia.creditos} créditos
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-people me-1"></i>
+                                ${materia.estudiantes_count || 0} estudiantes
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="bi bi-person me-1"></i>
+                            <strong>Profesor:</strong> ${materia.profesor || 'Sin asignar'}
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="showMateriaDetail(${materia.id})">
+                            <i class="bi bi-eye me-1"></i>
+                            Ver Detalles
+                        </button>
+                        {% if user.role == 'estudiante' %}
+                        <button class="btn btn-success btn-sm" onclick="inscribirseMateria(${materia.id})">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Inscribirse
+                        </button>
+                        {% endif %}
+                        {% if user.role == 'admin' or user.role == 'profesor' %}
+                        <button class="btn btn-warning btn-sm" onclick="showPrerrequisitos(${materia.id})" title="Gestionar prerrequisitos">
+                            <i class="bi bi-diagram-3 me-1"></i>
+                            Prerrequisitos
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterMaterias() {
+    const search = document.getElementById('searchMateria').value.toLowerCase();
+    const estadoFilter = document.getElementById('filterEstado').value;
+    const profesorFilter = document.getElementById('filterProfesor').value;
+    
+    const filtered = materiasData.filter(materia => {
+        const matchSearch = !search || 
+            materia.codigo.toLowerCase().includes(search) || 
+            materia.nombre.toLowerCase().includes(search);
+        
+        const matchEstado = !estadoFilter || materia.estado === estadoFilter;
+        
+        let matchProfesor = true;
+        if (profesorFilter === 'asignado') {
+            matchProfesor = materia.profesor && materia.profesor !== 'Sin asignar';
+        } else if (profesorFilter === 'sin_asignar') {
+            matchProfesor = !materia.profesor || materia.profesor === 'Sin asignar';
+        }
+        
+        return matchSearch && matchEstado && matchProfesor;
+    });
+    
+    renderMaterias(filtered);
+}
+
+function clearFilters() {
+    document.getElementById('searchMateria').value = '';
+    document.getElementById('filterEstado').value = '';
+    document.getElementById('filterProfesor').value = '';
+    renderMaterias(materiasData);
+}
+
+function showMateriaDetail(materiaId) {
+    const materia = materiasData.find(m => m.id === materiaId);
+    if (!materia) return;
+    
+    currentMateriaId = materiaId;
+    
+    document.getElementById('materiaDetailTitle').innerHTML = `
+        <i class="bi bi-book me-2"></i>
+        ${materia.codigo} - ${materia.nombre}
+    `;
+    
+    document.getElementById('materiaDetailBody').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Información General</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>Código:</strong></td><td>${materia.codigo}</td></tr>
+                    <tr><td><strong>Nombre:</strong></td><td>${materia.nombre}</td></tr>
+                    <tr><td><strong>Créditos:</strong></td><td>${materia.creditos}</td></tr>
+                    <tr><td><strong>Estado:</strong></td><td><span class="badge bg-${materia.estado === 'activa' ? 'success' : 'secondary'}">${materia.estado}</span></td></tr>
+                    <tr><td><strong>Profesor:</strong></td><td>${materia.profesor || 'Sin asignar'}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Estadísticas</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>Estudiantes inscritos:</strong></td><td>${materia.estudiantes_count || 0}</td></tr>
+                    <tr><td><strong>Disponible para inscripción:</strong></td><td>${materia.estado === 'activa' ? 'Sí' : 'No'}</td></tr>
+                </table>
+            </div>
+        </div>
+        ${materia.descripcion ? `
+            <div class="mt-3">
+                <h6>Descripción</h6>
+                <p class="text-muted">${materia.descripcion}</p>
+            </div>
+        ` : ''}
+    `;
+    
+    new bootstrap.Modal(document.getElementById('materiaDetailModal')).show();
+}
+
+// Cargar materias disponibles para inscripción (Estudiantes)
+{% if user.role == 'estudiante' %}
+function loadMateriasDisponibles() {
+    const loadingElement = document.getElementById('materiasLoading');
+    const containerElement = document.getElementById('materiasContainer');
+    const errorElement = document.getElementById('materiasError');
+    
+    // Reset states
+    loadingElement.classList.remove('d-none');
+    containerElement.classList.add('d-none');
+    errorElement.classList.add('d-none');
+    
+    fetch('/api/v1/materias/materias/disponibles/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        materiasData = data.materias || data;
+        loadingElement.classList.add('d-none');
+        containerElement.classList.remove('d-none');
+        renderMaterias(materiasData);
+        showAlert('info', `Se encontraron ${materiasData.length} materias disponibles para inscripción`);
+    })
+    .catch(error => {
+        console.error('Error loading materias disponibles:', error);
+        loadingElement.classList.add('d-none');
+        errorElement.classList.remove('d-none');
+    });
+}
+{% endif %}
+
+// Cargar mis materias (Profesores)
+{% if user.role == 'profesor' %}
+function loadMisMaterias() {
+    const loadingElement = document.getElementById('materiasLoading');
+    const containerElement = document.getElementById('materiasContainer');
+    const errorElement = document.getElementById('materiasError');
+    
+    // Reset states
+    loadingElement.classList.remove('d-none');
+    containerElement.classList.add('d-none');
+    errorElement.classList.add('d-none');
+    
+    fetch('/api/v1/materias/materias/mis_materias/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        materiasData = data.materias || data;
+        loadingElement.classList.add('d-none');
+        containerElement.classList.remove('d-none');
+        renderMaterias(materiasData);
+        showAlert('info', `Tienes ${materiasData.length} materias asignadas`);
+    })
+    .catch(error => {
+        console.error('Error loading mis materias:', error);
+        loadingElement.classList.add('d-none');
+        errorElement.classList.remove('d-none');
+    });
+}
+{% endif %}
+
+// Buscar materias con el término actual
+function buscarMaterias() {
+    const searchTerm = document.getElementById('searchMateria').value;
+    
+    if (searchTerm.length < 2) {
+        loadMaterias(); // Cargar todas si búsqueda muy corta
+        return;
+    }
+    
+    const loadingElement = document.getElementById('materiasLoading');
+    const containerElement = document.getElementById('materiasContainer');
+    const errorElement = document.getElementById('materiasError');
+    
+    // Reset states
+    loadingElement.classList.remove('d-none');
+    containerElement.classList.add('d-none');
+    errorElement.classList.add('d-none');
+    
+    fetch(`/api/v1/materias/materias/buscar/?q=${encodeURIComponent(searchTerm)}`, {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        materiasData = data.materias || data;
+        loadingElement.classList.add('d-none');
+        containerElement.classList.remove('d-none');
+        renderMaterias(materiasData);
+        
+        if (materiasData.length === 0) {
+            showAlert('warning', `No se encontraron materias con el término "${searchTerm}"`);
+        } else {
+            showAlert('success', `Se encontraron ${materiasData.length} materias`);
+        }
+    })
+    .catch(error => {
+        console.error('Error searching materias:', error);
+        loadingElement.classList.add('d-none');
+        errorElement.classList.remove('d-none');
+    });
+}
+
+{% if user.role == 'admin' or user.role == 'profesor' %}
+function createMateria() {
+    const data = {
+        codigo: document.getElementById('codigo').value,
+        nombre: document.getElementById('nombre').value,
+        descripcion: document.getElementById('descripcion').value,
+        creditos: parseInt(document.getElementById('creditos').value),
+        estado: document.getElementById('estado').value
+    };
+    
+    // Validaciones básicas
+    if (!data.codigo || !data.nombre || !data.creditos) {
+        showAlert('danger', 'Por favor completa todos los campos obligatorios');
+        return;
+    }
+    
+    // Crear materia via API REST
+    fetch('/api/v1/materias/materias/', {
+        method: 'POST',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        showAlert('success', `Materia ${data.codigo} - ${data.nombre} creada exitosamente`);
+        bootstrap.Modal.getInstance(document.getElementById('createMateriaModal')).hide();
+        document.getElementById('createMateriaForm').reset();
+        loadMaterias(); // Recargar lista
+    })
+    .catch(error => {
+        console.error('Error creating materia:', error);
+        
+        let errorMsg = 'Error al crear la materia';
+        if (error.codigo) {
+            errorMsg = `Error: ${error.codigo[0]}`;
+        } else if (error.non_field_errors) {
+            errorMsg = error.non_field_errors[0];
+        } else if (error.detail) {
+            errorMsg = error.detail;
+        }
+        
+        showAlert('danger', errorMsg);
+    });
+}
+{% endif %}
+
+// Función para obtener header de autorización
+function getAuthHeader() {
+    const token = localStorage.getItem('access_token');
+    return token ? `Bearer ${token}` : '';
+}
+
+// Manejar búsqueda con debounce
+function handleSearch() {
+    const searchTerm = document.getElementById('searchMateria').value.trim();
+    
+    if (searchTerm.length >= 2) {
+        buscarMaterias();
+    } else if (searchTerm.length === 0) {
+        loadMaterias(); // Volver a cargar todas
+    }
+}
+
+// Función debounce para evitar demasiadas llamadas a la API
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+{% if user.role == 'estudiante' %}
+function inscribirseMateria(materiaId = null) {
+    const id = materiaId || currentMateriaId;
+    if (!id) return;
+    
+    // Confirmar inscripción
+    const materia = materiasData.find(m => m.id == id);
+    if (!materia) return;
+    
+    if (!confirm(`¿Estás seguro de que quieres inscribirte en ${materia.codigo} - ${materia.nombre}?`)) {
+        return;
+    }
+    
+    // Mostrar loading
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-clock me-1"></i>Inscribiendo...';
+    
+    // Realizar inscripción via API REST
+    fetch('/api/v1/inscripciones/inscripciones/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            estudiante: {{ user.id }},
+            materia: parseInt(id),
+            periodo: 1  // Período actual (2025-1)
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Éxito
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Inscrito';
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-secondary');
+        
+        // Mostrar mensaje de éxito
+        showAlert('success', `¡Te has inscrito exitosamente en ${materia.codigo} - ${materia.nombre}!`);
+        
+        // Opcional: redirigir a inscripciones después de 2 segundos
+        setTimeout(() => {
+            window.location.href = '{% url "frontend:inscripciones" %}';
+        }, 2000);
+    })
+    .catch(error => {
+        console.error('Error al inscribirse:', error);
+        
+        // Restaurar botón
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        
+        // Mostrar error específico
+        let errorMsg = 'Error al procesar la inscripción';
+        if (error.non_field_errors) {
+            errorMsg = error.non_field_errors[0];
+        } else if (error.detail) {
+            errorMsg = error.detail;
+        } else if (typeof error === 'string') {
+            errorMsg = error;
+        }
+        
+        showAlert('danger', errorMsg);
+    });
+}
+
+// Función para mostrar alertas
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer') || createAlertContainer();
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}-fill me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    alertContainer.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function createAlertContainer() {
+    const container = document.createElement('div');
+    container.id = 'alertContainer';
+    container.style.position = 'fixed';
+    container.style.top = '80px';
+    container.style.right = '20px';
+    container.style.zIndex = '9999';
+    container.style.maxWidth = '400px';
+    document.body.appendChild(container);
+    return container;
+}
+{% endif %}
+
+{% if user.role == 'admin' or user.role == 'profesor' %}
+// Gestión de Prerrequisitos
+let currentMateriaForPrerequisitos = null;
+
+function showPrerrequisitos(materiaId) {
+    const materia = materiasData.find(m => m.id === materiaId);
+    if (!materia) return;
+    
+    currentMateriaForPrerequisitos = materiaId;
+    
+    // Actualizar información de la materia
+    document.getElementById('materiaInfoText').textContent = 
+        `Gestionar prerrequisitos para: ${materia.codigo} - ${materia.nombre}`;
+    
+    // Cargar prerrequisitos existentes
+    loadPrerrequisitos(materiaId);
+    
+    // Cargar materias disponibles para prerrequisitos
+    loadMateriasForPrerrequisitos(materiaId);
+    
+    // Mostrar modal
+    new bootstrap.Modal(document.getElementById('prerrequisitosModal')).show();
+}
+
+function loadPrerrequisitos(materiaId) {
+    const container = document.getElementById('currentPrerrequisitos');
+    
+    container.innerHTML = `
+        <div class="text-center text-muted">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 mb-0">Cargando prerrequisitos...</p>
+        </div>
+    `;
+    
+    fetch(`/api/v1/materias/prerrequisitos/por_materia/?materia_id=${materiaId}`, {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al cargar prerrequisitos');
+        return response.json();
+    })
+    .then(data => {
+        renderPrerrequisitos(data);
+    })
+    .catch(error => {
+        console.error('Error loading prerrequisitos:', error);
+        container.innerHTML = '<p class="text-danger">Error al cargar prerrequisitos</p>';
+    });
+}
+
+function renderPrerrequisitos(prerrequisitos) {
+    const container = document.getElementById('currentPrerrequisitos');
+    
+    if (prerrequisitos.length === 0) {
+        container.innerHTML = '<p class="text-muted">No hay prerrequisitos definidos</p>';
+        return;
+    }
+    
+    container.innerHTML = prerrequisitos.map(preq => `
+        <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+            <div>
+                <strong>${preq.prerrequisito_codigo}</strong> - ${preq.prerrequisito_nombre}
+                <span class="badge bg-secondary ms-2">${preq.tipo}</span>
+            </div>
+            <button class="btn btn-outline-danger btn-sm" onclick="removePrerrequisito(${preq.id})" title="Eliminar">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function loadMateriasForPrerrequisitos(excludeMateriaId) {
+    const select = document.getElementById('prerrequisiteMateria');
+    
+    fetch('/api/v1/materias/materias/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const materias = (data.results || data).filter(m => m.id !== excludeMateriaId);
+        
+        select.innerHTML = '<option value="">Selecciona una materia...</option>' +
+            materias.map(materia => `
+                <option value="${materia.id}">${materia.codigo} - ${materia.nombre}</option>
+            `).join('');
+    })
+    .catch(error => {
+        console.error('Error loading materias for prerequisites:', error);
+        select.innerHTML = '<option value="">Error al cargar materias</option>';
+    });
+}
+
+function addPrerrequisito() {
+    const materiaPrerequisito = document.getElementById('prerrequisiteMateria').value;
+    const tipo = document.getElementById('prerrequisiteType').value;
+    
+    if (!materiaPrerequisito || !tipo) {
+        showAlert('danger', 'Por favor selecciona una materia y tipo');
+        return;
+    }
+    
+    const data = {
+        materia: currentMateriaForPrerequisitos,
+        prerrequisito: parseInt(materiaPrerequisito),
+        tipo: tipo
+    };
+    
+    fetch('/api/v1/materias/prerrequisitos/', {
+        method: 'POST',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        showAlert('success', 'Prerrequisito agregado exitosamente');
+        document.getElementById('addPrerrequisiteForm').reset();
+        loadPrerrequisitos(currentMateriaForPrerequisitos);
+    })
+    .catch(error => {
+        console.error('Error adding prerrequisito:', error);
+        
+        let errorMsg = 'Error al agregar prerrequisito';
+        if (error.non_field_errors) {
+            errorMsg = error.non_field_errors[0];
+        } else if (error.detail) {
+            errorMsg = error.detail;
+        }
+        
+        showAlert('danger', errorMsg);
+    });
+}
+
+function removePrerrequisito(prerrequisiteId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este prerrequisito?')) {
+        return;
+    }
+    
+    fetch(`/api/v1/materias/prerrequisitos/${prerrequisiteId}/`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'X-CSRFToken': csrftoken
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al eliminar prerrequisito');
+        showAlert('success', 'Prerrequisito eliminado exitosamente');
+        loadPrerrequisitos(currentMateriaForPrerequisitos);
+    })
+    .catch(error => {
+        console.error('Error removing prerrequisito:', error);
+        showAlert('danger', 'Error al eliminar el prerrequisito');
+    });
+}
+{% endif %}
+</script>
+{% endblock %} 

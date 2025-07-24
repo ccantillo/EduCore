@@ -6,6 +6,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.base')
 
 app = Celery('prueba_tecnica')
 app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Configuración adicional para evitar warnings
+app.conf.update(
+    broker_connection_retry_on_startup=True,  # Evitar warning de deprecación
+)
+
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 @app.task(bind=True)

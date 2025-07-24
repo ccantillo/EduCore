@@ -42,6 +42,7 @@ LOCAL_APPS = [
     'apps.notificaciones',
     'apps.reportes',
     'apps.common',
+    'apps.frontend',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -63,7 +64,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Agregar directorio de templates global
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -138,10 +139,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Configuración del modelo de usuario personalizado
 AUTH_USER_MODEL = 'users.User'
 
+# URLs de autenticación para el frontend web
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
+
 # Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -150,6 +157,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',

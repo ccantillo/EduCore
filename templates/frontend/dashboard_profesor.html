@@ -1,0 +1,460 @@
+{% extends 'frontend/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-speedometer2 me-2"></i>
+        Dashboard Profesor
+    </h1>
+    <div class="text-muted">
+        <i class="bi bi-calendar-event me-1"></i>
+        {{ "now"|date:"d/m/Y" }}
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Mis Materias</h6>
+                        <h3 class="mb-0" id="misMaterias">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-book-fill" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Estudiantes Totales</h6>
+                        <h3 class="mb-0" id="totalEstudiantes">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people-fill" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Calificaciones Pendientes</h6>
+                        <h3 class="mb-0" id="calificacionesPendientes">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-clipboard-check" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Promedio General</h6>
+                        <h3 class="mb-0" id="promedioGeneral">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-star-fill" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <!-- Mis Materias -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-book me-2"></i>
+                    Mis Materias Activas
+                </h5>
+                <a href="{% url 'frontend:materias' %}" class="btn btn-sm btn-outline-primary">
+                    Gestionar todas
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="loading" id="materiasLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando materias...</p>
+                </div>
+                
+                <div class="table-responsive d-none" id="materiasTable">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Materia</th>
+                                <th>Créditos</th>
+                                <th>Estudiantes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materiasBody">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-info d-none" id="materiasEmpty">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No tienes materias asignadas actualmente.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning-charge me-2"></i>
+                    Acciones Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'frontend:materias' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-book me-2"></i>
+                        Ver Mis Materias
+                    </a>
+                    <a href="{% url 'frontend:inscripciones' %}" class="btn btn-outline-success">
+                        <i class="bi bi-people me-2"></i>
+                        Ver Estudiantes
+                    </a>
+                    <button class="btn btn-outline-warning" onclick="showCalificarModal()">
+                        <i class="bi bi-star me-2"></i>
+                        Calificar Estudiantes
+                    </button>
+                    <a href="{% url 'frontend:reportes' %}" class="btn btn-outline-info">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i>
+                        Generar Reportes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <!-- Inscripciones Recientes -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Inscripciones Recientes
+                </h5>
+                <a href="{% url 'frontend:inscripciones' %}" class="btn btn-sm btn-outline-primary">
+                    Ver todas
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="loading" id="inscripcionesLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando inscripciones...</p>
+                </div>
+                
+                <div id="inscripcionesList" class="d-none" style="max-height: 300px; overflow-y: auto;">
+                </div>
+                
+                <div class="alert alert-info d-none" id="inscripcionesEmpty">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No hay inscripciones recientes en tus materias.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notificaciones -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-bell me-2"></i>
+                    Notificaciones
+                </h5>
+                <a href="{% url 'frontend:notificaciones' %}" class="btn btn-sm btn-outline-primary">
+                    Ver todas
+                </a>
+            </div>
+            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                <div class="loading" id="notificacionesLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando notificaciones...</p>
+                </div>
+                
+                <div id="notificacionesList" class="d-none">
+                </div>
+                
+                <div class="alert alert-info d-none" id="notificacionesEmpty">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No hay notificaciones recientes.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar estadísticas del profesor
+    loadProfesorStats();
+    
+    // Cargar materias
+    loadMaterias();
+    
+    // Cargar inscripciones recientes
+    loadRecentInscripciones();
+    
+    // Cargar notificaciones
+    loadNotificaciones();
+});
+
+function loadProfesorStats() {
+    // Simulamos estadísticas para el profesor
+    // En una implementación real, harías llamadas AJAX a endpoints específicos
+    
+    document.getElementById('misMaterias').textContent = '-';
+    document.getElementById('totalEstudiantes').textContent = '-';
+    document.getElementById('calificacionesPendientes').textContent = '-';
+    document.getElementById('promedioGeneral').textContent = '-';
+    
+    // Simulación de carga de datos
+    setTimeout(() => {
+        document.getElementById('misMaterias').textContent = '4';
+        document.getElementById('totalEstudiantes').textContent = '85';
+        document.getElementById('calificacionesPendientes').textContent = '12';
+        document.getElementById('promedioGeneral').textContent = '4.2';
+    }, 1000);
+}
+
+function loadMaterias() {
+    const loading = document.getElementById('materiasLoading');
+    const table = document.getElementById('materiasTable');
+    const empty = document.getElementById('materiasEmpty');
+    const tbody = document.getElementById('materiasBody');
+    
+    fetch('{% url "frontend:api_materias" %}')
+    .then(response => response.json())
+    .then(data => {
+        loading.classList.add('d-none');
+        
+        if (data.materias && data.materias.length > 0) {
+            table.classList.remove('d-none');
+            tbody.innerHTML = '';
+            
+            data.materias.forEach(materia => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${materia.codigo}</strong>
+                    </td>
+                    <td>${materia.nombre}</td>
+                    <td>
+                        <span class="badge bg-secondary">${materia.creditos}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary">${materia.estudiantes_count}</span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary btn-sm" onclick="viewMateria(${materia.id})">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="gradeStudents(${materia.id})">
+                                <i class="bi bi-star"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            empty.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loading.classList.add('d-none');
+        empty.classList.remove('d-none');
+    });
+}
+
+function loadRecentInscripciones() {
+    const loading = document.getElementById('inscripcionesLoading');
+    const list = document.getElementById('inscripcionesList');
+    const empty = document.getElementById('inscripcionesEmpty');
+    
+    fetch('{% url "frontend:api_inscripciones" %}')
+    .then(response => response.json())
+    .then(data => {
+        loading.classList.add('d-none');
+        
+        if (data.inscripciones && data.inscripciones.length > 0) {
+            list.classList.remove('d-none');
+            list.innerHTML = '';
+            
+            // Mostrar solo las primeras 5 inscripciones más recientes
+            const recentInscripciones = data.inscripciones.slice(0, 5);
+            
+            recentInscripciones.forEach(inscripcion => {
+                const inscripcionElement = createInscripcionElement(inscripcion);
+                list.appendChild(inscripcionElement);
+            });
+        } else {
+            empty.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loading.classList.add('d-none');
+        empty.classList.remove('d-none');
+    });
+}
+
+function loadNotificaciones() {
+    const loading = document.getElementById('notificacionesLoading');
+    const list = document.getElementById('notificacionesList');
+    const empty = document.getElementById('notificacionesEmpty');
+    
+    fetch('{% url "frontend:api_notificaciones" %}')
+    .then(response => response.json())
+    .then(data => {
+        loading.classList.add('d-none');
+        
+        if (data.notificaciones && data.notificaciones.length > 0) {
+            list.classList.remove('d-none');
+            list.innerHTML = '';
+            
+            data.notificaciones.forEach(notif => {
+                const notifElement = createNotificationElement(notif);
+                list.appendChild(notifElement);
+            });
+        } else {
+            empty.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loading.classList.add('d-none');
+        empty.classList.remove('d-none');
+    });
+}
+
+function createInscripcionElement(inscripcion) {
+    const div = document.createElement('div');
+    div.className = 'border-start border-3 border-primary ps-3 mb-3';
+    
+    const estadoBadge = getEstadoBadge(inscripcion.estado);
+    
+    div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <h6 class="mb-1">${inscripcion.estudiante}</h6>
+                <p class="mb-1 text-muted small">${inscripcion.materia}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">${inscripcion.fecha_inscripcion}</small>
+                    ${estadoBadge}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+function createNotificationElement(notif) {
+    const div = document.createElement('div');
+    div.className = `border-start border-3 ps-3 mb-3 ${notif.es_no_leida ? 'border-primary' : 'border-secondary'}`;
+    
+    const typeIcon = getNotificationIcon(notif.tipo);
+    const timeAgo = getTimeAgo(notif.fecha);
+    
+    div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-1">
+                    <i class="bi ${typeIcon} me-2 text-primary"></i>
+                    <h6 class="mb-0">${notif.titulo}</h6>
+                    ${notif.es_no_leida ? '<span class="badge bg-primary ms-2">Nueva</span>' : ''}
+                </div>
+                <p class="mb-1 text-muted small">${notif.mensaje}</p>
+                <small class="text-muted">${timeAgo}</small>
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+function getEstadoBadge(estado) {
+    const badges = {
+        'activa': '<span class="badge bg-success">Activa</span>',
+        'completada': '<span class="badge bg-primary">Completada</span>',
+        'cancelada': '<span class="badge bg-danger">Cancelada</span>',
+        'pendiente': '<span class="badge bg-warning">Pendiente</span>'
+    };
+    return badges[estado] || `<span class="badge bg-secondary">${estado}</span>`;
+}
+
+function getNotificationIcon(tipo) {
+    const icons = {
+        'sistema': 'bi-gear',
+        'academico': 'bi-book',
+        'inscripcion': 'bi-clipboard-check',
+        'calificacion': 'bi-star',
+        'general': 'bi-info-circle'
+    };
+    return icons[tipo] || 'bi-bell';
+}
+
+function getTimeAgo(dateString) {
+    // Simple time ago calculation
+    return dateString;
+}
+
+function viewMateria(materiaId) {
+    // Implementar navegación a la vista detallada de la materia
+    window.location.href = `{% url 'frontend:materias' %}?materia=${materiaId}`;
+}
+
+function gradeStudents(materiaId) {
+    // Implementar modal o navegación para calificar estudiantes
+    alert(`Funcionalidad para calificar estudiantes de la materia ${materiaId} - Por implementar`);
+}
+
+function showCalificarModal() {
+    alert('Modal de calificación - Por implementar');
+}
+</script>
+{% endblock %} 

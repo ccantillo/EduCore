@@ -20,3 +20,12 @@ Consulta el archivo `docs/roadmap.md` para ver el plan de desarrollo y los avanc
 ---
 
 > Proyecto desarrollado como parte de una prueba técnica. Para dudas o sugerencias, contacta al responsable del repositorio. 
+
+## Tareas programadas (Celery Beat)
+
+Para programar las tareas periódicas, accede al admin de Django y usa el modelo Periodic Task de django-celery-beat. Ejemplo sugerido:
+
+- `delete_old_notifications`: Ejecutar diariamente (cada 24h)
+- `send_weekly_professor_summary`: Ejecutar cada lunes a las 8:00 AM
+
+Puedes ajustar la periodicidad desde el admin o usando migraciones personalizadas. 

@@ -42,8 +42,8 @@ urlpatterns = [
     # API URLs
     path('api/v1/', include([
         path('users/', include('apps.users.urls')),
-        # path('materias/', include('apps.materias.urls')),
-        # path('inscripciones/', include('apps.inscripciones.urls')),
+        path('materias/', include('apps.materias.urls')),
+        path('inscripciones/', include('apps.inscripciones.urls')),
         # path('notificaciones/', include('apps.notificaciones.urls')),
         # path('reportes/', include('apps.reportes.urls')),
     ])),

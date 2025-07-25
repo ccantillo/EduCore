@@ -1,0 +1,397 @@
+{% extends 'frontend/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-speedometer2 me-2"></i>
+        Dashboard Estudiante
+    </h1>
+    <div class="text-muted">
+        <i class="bi bi-calendar-event me-1"></i>
+        {{ "now"|date:"d/m/Y" }}
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Materias Actuales</h6>
+                        <h3 class="mb-0" id="materiasActuales">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-book-fill" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Materias Aprobadas</h6>
+                        <h3 class="mb-0" id="materiasAprobadas">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-check-circle-fill" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Promedio General</h6>
+                        <h3 class="mb-0" id="promedioGeneral">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-star-fill" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Créditos</h6>
+                        <h3 class="mb-0" id="totalCreditos">-</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-award-fill" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <!-- Mis Inscripciones -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>
+                    Mis Inscripciones Actuales
+                </h5>
+                <a href="{% url 'frontend:inscripciones' %}" class="btn btn-sm btn-outline-primary">
+                    Ver todas
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="loading" id="inscripcionesLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando inscripciones...</p>
+                </div>
+                
+                <div class="table-responsive d-none" id="inscripcionesTable">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Materia</th>
+                                <th>Profesor</th>
+                                <th>Créditos</th>
+                                <th>Estado</th>
+                                <th>Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inscripcionesBody">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-info d-none" id="inscripcionesEmpty">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No tienes inscripciones activas. <a href="{% url 'frontend:materias' %}">¡Inscríbete a una materia!</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notificaciones -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-bell me-2"></i>
+                    Notificaciones Recientes
+                </h5>
+                <a href="{% url 'frontend:notificaciones' %}" class="btn btn-sm btn-outline-primary">
+                    Ver todas
+                </a>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div class="loading" id="notificacionesLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando notificaciones...</p>
+                </div>
+                
+                <div id="notificacionesList" class="d-none">
+                </div>
+                
+                <div class="alert alert-info d-none" id="notificacionesEmpty">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No tienes notificaciones nuevas.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning-fill me-2"></i>
+                    Acciones Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{% url 'frontend:materias' %}" class="btn btn-outline-primary d-flex align-items-center w-100">
+                            <i class="bi bi-search me-2"></i>
+                            Buscar Materias
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'frontend:inscripciones' %}" class="btn btn-outline-success d-flex align-items-center w-100">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Nueva Inscripción
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'frontend:notificaciones' %}" class="btn btn-outline-warning d-flex align-items-center w-100">
+                            <i class="bi bi-bell me-2"></i>
+                            Ver Notificaciones
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="#" class="btn btn-outline-info d-flex align-items-center w-100" id="btnActualizarPromedio">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Actualizar Promedio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    
+    // Botón actualizar promedio
+    document.getElementById('btnActualizarPromedio').addEventListener('click', function(e) {
+        e.preventDefault();
+        loadDashboardData();
+    });
+});
+
+function loadDashboardData() {
+    // Cargar estadísticas del estudiante
+    loadEstudianteStats();
+    
+    // Cargar inscripciones
+    loadInscripciones();
+    
+    // Cargar notificaciones (ya se carga en base.html)
+    loadNotificacionesRecientes();
+}
+
+function loadEstudianteStats() {
+    // Obtener promedio del estudiante desde la API
+    const userId = {{ user.id }};
+    
+    fetch(`/api/v1/inscripciones/inscripciones/promedio_estudiante/?estudiante_id=${userId}`, {
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token') || ''
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Si no hay token válido, usamos los endpoints internos
+            return loadEstudianteStatsInternal();
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data) {
+            document.getElementById('materiasActuales').textContent = data.materias_activas || 0;
+            document.getElementById('materiasAprobadas').textContent = data.materias_aprobadas || 0;
+            document.getElementById('promedioGeneral').textContent = data.promedio_general ? data.promedio_general.toFixed(2) : '0.00';
+            document.getElementById('totalCreditos').textContent = data.total_creditos || 0;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading student stats:', error);
+        // Fallback: mostrar valores por defecto
+        document.getElementById('materiasActuales').textContent = '0';
+        document.getElementById('materiasAprobadas').textContent = '0';
+        document.getElementById('promedioGeneral').textContent = '0.00';
+        document.getElementById('totalCreditos').textContent = '0';
+    });
+}
+
+function loadEstudianteStatsInternal() {
+    // Calcular estadísticas basadas en las inscripciones cargadas
+    fetch('{% url "frontend:api_inscripciones" %}')
+    .then(response => response.json())
+    .then(data => {
+        if (data.inscripciones) {
+            const inscripciones = data.inscripciones;
+            const activas = inscripciones.filter(i => i.estado === 'activa').length;
+            const aprobadas = inscripciones.filter(i => i.estado === 'aprobada').length;
+            
+            // Calcular promedio de materias con nota
+            const conNota = inscripciones.filter(i => i.nota_final !== null);
+            const promedio = conNota.length > 0 
+                ? conNota.reduce((sum, i) => sum + i.nota_final, 0) / conNota.length 
+                : 0;
+            
+            document.getElementById('materiasActuales').textContent = activas;
+            document.getElementById('materiasAprobadas').textContent = aprobadas;
+            document.getElementById('promedioGeneral').textContent = promedio.toFixed(2);
+            document.getElementById('totalCreditos').textContent = aprobadas * 3; // Asumiendo 3 créditos promedio
+        }
+    })
+    .catch(error => console.error('Error loading internal stats:', error));
+}
+
+function loadInscripciones() {
+    const loadingElement = document.getElementById('inscripcionesLoading');
+    const tableElement = document.getElementById('inscripcionesTable');
+    const emptyElement = document.getElementById('inscripcionesEmpty');
+    const bodyElement = document.getElementById('inscripcionesBody');
+    
+    fetch('{% url "frontend:api_inscripciones" %}')
+    .then(response => response.json())
+    .then(data => {
+        loadingElement.classList.add('d-none');
+        
+        if (data.inscripciones && data.inscripciones.length > 0) {
+            // Filtrar solo inscripciones activas para el dashboard
+            const activas = data.inscripciones.filter(i => i.estado === 'activa').slice(0, 5);
+            
+            if (activas.length > 0) {
+                bodyElement.innerHTML = activas.map(inscripcion => `
+                    <tr>
+                        <td>
+                            <strong>${inscripcion.materia}</strong>
+                        </td>
+                        <td>
+                            <span class="text-muted">${inscripcion.profesor || 'Sin asignar'}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">3</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-${getBadgeColor(inscripcion.estado)}">${inscripcion.estado}</span>
+                        </td>
+                        <td>
+                            ${inscripcion.nota_final ? `<strong>${inscripcion.nota_final}</strong>` : '<span class="text-muted">Pendiente</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+                
+                tableElement.classList.remove('d-none');
+            } else {
+                emptyElement.classList.remove('d-none');
+            }
+        } else {
+            emptyElement.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading inscripciones:', error);
+        loadingElement.classList.add('d-none');
+        emptyElement.classList.remove('d-none');
+    });
+}
+
+function loadNotificacionesRecientes() {
+    fetch('{% url "frontend:api_notificaciones" %}')
+    .then(response => response.json())
+    .then(data => {
+        const loadingElement = document.getElementById('notificacionesLoading');
+        const listElement = document.getElementById('notificacionesList');
+        const emptyElement = document.getElementById('notificacionesEmpty');
+        
+        loadingElement.classList.add('d-none');
+        
+        if (data.notificaciones && data.notificaciones.length > 0) {
+            listElement.innerHTML = data.notificaciones.slice(0, 5).map(notif => `
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 ${notif.es_no_leida ? 'fw-bold' : ''}">${notif.titulo}</h6>
+                            <p class="mb-1 small text-muted">${notif.mensaje.substring(0, 80)}...</p>
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>${notif.fecha}
+                            </small>
+                        </div>
+                        <span class="badge bg-${getNotificationColor(notif.tipo)} ms-2">${notif.tipo}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            listElement.classList.remove('d-none');
+        } else {
+            emptyElement.classList.remove('d-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading notifications:', error);
+        document.getElementById('notificacionesLoading').classList.add('d-none');
+        document.getElementById('notificacionesEmpty').classList.remove('d-none');
+    });
+}
+
+function getBadgeColor(estado) {
+    const colors = {
+        'activa': 'primary',
+        'aprobada': 'success',
+        'reprobada': 'danger',
+        'retirada': 'warning',
+        'cancelada': 'secondary'
+    };
+    return colors[estado] || 'secondary';
+}
+
+function getNotificationColor(tipo) {
+    const colors = {
+        'bienvenida': 'primary',
+        'inscripcion_exitosa': 'success',
+        'inscripcion_rechazada': 'danger',
+        'calificacion_publicada': 'info',
+        'recordatorio': 'warning',
+        'sistema': 'secondary'
+    };
+    return colors[tipo] || 'secondary';
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title }} - Sistema Académico{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar .nav-link {
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+            color: var(--primary-color);
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .notification-badge {
+            font-size: 0.75rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loading .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'frontend:index' %}">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                Sistema Académico
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'frontend:dashboard' %}">
+                                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'frontend:materias' %}">
+                                <i class="bi bi-book me-1"></i>Materias
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'frontend:inscripciones' %}">
+                                <i class="bi bi-clipboard-check me-1"></i>Inscripciones
+                            </a>
+                        </li>
+                        {% if user.role == 'admin' or user.role == 'profesor' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'frontend:reportes' %}">
+                                <i class="bi bi-file-earmark-text me-1"></i>Reportes
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-bell"></i>
+                                <span class="badge bg-danger notification-badge ms-1" id="notificationCount" style="display:none;">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" style="width: 300px;">
+                                <li><h6 class="dropdown-header">Notificaciones</h6></li>
+                                <div id="notificationsList">
+                                    <li><span class="dropdown-item-text text-muted">Cargando...</span></li>
+                                </div>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center" href="{% url 'frontend:notificaciones' %}">Ver todas</a></li>
+                            </ul>
+                        </li>
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i>
+                                {{ user.get_full_name|default:user.username }}
+                                {% if user.role %}
+                                    <span class="badge bg-secondary ms-1">{{ user.get_role_display }}</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'frontend:perfil' %}"><i class="bi bi-person me-2"></i>Mi Perfil</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'frontend:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'frontend:login' %}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container-fluid mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    {% else %}
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            {% if user.is_authenticated %}
+                <!-- Sidebar -->
+                <div class="col-md-3 col-lg-2 sidebar p-3">
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase">Menú Principal</h6>
+                    </div>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="{% url 'frontend:dashboard' %}">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                        </a>
+                        <a class="nav-link" href="{% url 'frontend:materias' %}">
+                            <i class="bi bi-book me-2"></i>Materias
+                        </a>
+                        <a class="nav-link" href="{% url 'frontend:inscripciones' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>Inscripciones
+                        </a>
+                        <a class="nav-link" href="{% url 'frontend:notificaciones' %}">
+                            <i class="bi bi-bell me-2"></i>Notificaciones
+                        </a>
+                        
+                        {% if user.role == 'admin' or user.role == 'profesor' %}
+                            <hr class="my-2">
+                            <h6 class="text-muted text-uppercase">Administración</h6>
+                            <a class="nav-link" href="{% url 'frontend:reportes' %}">
+                                <i class="bi bi-file-earmark-text me-2"></i>Reportes
+                            </a>
+                            {% if user.role == 'admin' %}
+                                <a class="nav-link" href="{% url 'frontend:periodos' %}">
+                                    <i class="bi bi-calendar3 me-2"></i>Períodos
+                                </a>
+                                <a class="nav-link" href="/admin/" target="_blank">
+                                    <i class="bi bi-gear me-2"></i>Admin Django
+                                </a>
+                                <a class="nav-link" href="/swagger/" target="_blank">
+                                    <i class="bi bi-code-slash me-2"></i>API Docs
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </nav>
+                </div>
+                <!-- Content for authenticated users -->
+                <div class="col-md-9 col-lg-10 p-4">
+            {% else %}
+                <!-- Content for non-authenticated users - full width -->
+                <div class="col-12 p-4">
+            {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center text-muted py-3 mt-5">
+        <div class="container">
+            <small>&copy; 2025 Sistema Académico. Desarrollado con Django y Bootstrap.</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // CSRF Token para AJAX
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        // Configurar AJAX con CSRF
+        function setupAjax() {
+            if (window.fetch) {
+                const originalFetch = window.fetch;
+                window.fetch = function(url, options = {}) {
+                    if (!options.headers) options.headers = {};
+                    if (!options.headers['X-CSRFToken']) {
+                        options.headers['X-CSRFToken'] = csrftoken;
+                    }
+                    return originalFetch(url, options);
+                };
+            }
+        }
+        
+        // Cargar notificaciones
+        function loadNotifications() {
+            {% if user.is_authenticated %}
+            fetch('{% url "frontend:api_notificaciones" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const notificationsList = document.getElementById('notificationsList');
+                    const notificationCount = document.getElementById('notificationCount');
+                    
+                    if (data.notificaciones && data.notificaciones.length > 0) {
+                        const unreadCount = data.notificaciones.filter(n => n.es_no_leida).length;
+                        
+                        if (unreadCount > 0) {
+                            notificationCount.textContent = unreadCount;
+                            notificationCount.style.display = 'inline';
+                        } else {
+                            notificationCount.style.display = 'none';
+                        }
+                        
+                        notificationsList.innerHTML = data.notificaciones.slice(0, 5).map(notif => `
+                            <li>
+                                <a class="dropdown-item ${notif.es_no_leida ? 'fw-bold' : ''}" href="#">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <small class="text-muted">${notif.tipo}</small>
+                                        <small class="text-muted">${notif.fecha}</small>
+                                    </div>
+                                    <div class="mb-1">${notif.titulo}</div>
+                                    <small class="text-muted">${notif.mensaje.substring(0, 50)}...</small>
+                                </a>
+                            </li>
+                        `).join('');
+                    } else {
+                        notificationsList.innerHTML = '<li><span class="dropdown-item-text text-muted">No hay notificaciones</span></li>';
+                        notificationCount.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error loading notifications:', error));
+            {% endif %}
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAjax();
+            loadNotifications();
+            
+            // Actualizar notificaciones cada 30 segundos
+            setInterval(loadNotifications, 30000);
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

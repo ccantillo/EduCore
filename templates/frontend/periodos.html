@@ -1,0 +1,566 @@
+{% extends 'frontend/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="bi bi-calendar3 me-2"></i>
+        Períodos Académicos
+    </h1>
+    {% if user.role == 'admin' %}
+    <div class="btn-group">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPeriodoModal">
+            <i class="bi bi-plus-circle me-1"></i>
+            Nuevo Período
+        </button>
+        <button class="btn btn-info" onclick="loadPeriodosActivos()">
+            <i class="bi bi-check-circle me-1"></i>
+            Solo Activos
+        </button>
+        <button class="btn btn-outline-secondary" onclick="loadPeriodos()">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Actualizar
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="searchPeriodo" class="form-label">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="searchPeriodo" placeholder="Nombre del período...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="filterEstado" class="form-label">Estado</label>
+                <select class="form-select" id="filterEstado">
+                    <option value="">Todos</option>
+                    <option value="planificacion">Planificación</option>
+                    <option value="inscripciones">Inscripciones</option>
+                    <option value="en_curso">En Curso</option>
+                    <option value="finalizado">Finalizado</option>
+                    <option value="cerrado">Cerrado</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filterYear" class="form-label">Año</label>
+                <select class="form-select" id="filterYear">
+                    <option value="">Todos</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading -->
+<div class="loading" id="periodosLoading">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando períodos...</p>
+</div>
+
+<!-- Períodos List -->
+<div class="d-none" id="periodosContainer">
+    <div class="row" id="periodosGrid">
+        <!-- Los períodos se cargarán aquí dinámicamente -->
+    </div>
+    
+    <!-- Empty State -->
+    <div class="alert alert-info d-none" id="periodosEmpty">
+        <i class="bi bi-info-circle me-2"></i>
+        No se encontraron períodos que coincidan con los filtros aplicados.
+    </div>
+</div>
+
+<!-- Error State -->
+<div class="alert alert-danger d-none" id="periodosError">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Error al cargar los períodos. <a href="#" onclick="loadPeriodos()">Intentar nuevamente</a>
+</div>
+
+<!-- Modal for Create Período (Admin) -->
+{% if user.role == 'admin' %}
+<div class="modal fade" id="createPeriodoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Nuevo Período Académico
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createPeriodoForm">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre *</label>
+                        <input type="text" class="form-control" id="nombre" required placeholder="Ej: 2025-1">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="fechaInicio" class="form-label">Fecha Inicio *</label>
+                            <input type="date" class="form-control" id="fechaInicio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fechaFin" class="form-label">Fecha Fin *</label>
+                            <input type="date" class="form-control" id="fechaFin" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="estado" class="form-label">Estado Inicial</label>
+                        <select class="form-select" id="estado">
+                            <option value="planificacion">Planificación</option>
+                            <option value="inscripciones">Inscripciones</option>
+                            <option value="en_curso">En Curso</option>
+                            <option value="finalizado">Finalizado</option>
+                            <option value="cerrado">Cerrado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" rows="3" placeholder="Descripción del período académico..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="createPeriodo()">Crear Período</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Edit Estado -->
+<div class="modal fade" id="changeEstadoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-gear me-2"></i>
+                    Cambiar Estado del Período
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" id="currentPeriodoInfo">
+                    <!-- Se llena dinámicamente -->
+                </div>
+                <form id="changeEstadoForm">
+                    <div class="mb-3">
+                        <label for="nuevoEstado" class="form-label">Nuevo Estado *</label>
+                        <select class="form-select" id="nuevoEstado" required>
+                            <option value="">Selecciona un estado...</option>
+                            <option value="planificacion">Planificación</option>
+                            <option value="inscripciones">Inscripciones</option>
+                            <option value="en_curso">En Curso</option>
+                            <option value="finalizado">Finalizado</option>
+                            <option value="cerrado">Cerrado</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Nota:</strong> El cambio de estado afectará las funciones disponibles del sistema.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="cambiarEstado()">Cambiar Estado</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let periodosData = [];
+let currentPeriodoId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadPeriodos();
+    
+    // Search and filter listeners
+    document.getElementById('searchPeriodo').addEventListener('input', debounce(filterPeriodos, 300));
+    document.getElementById('filterEstado').addEventListener('change', filterPeriodos);
+    document.getElementById('filterYear').addEventListener('change', filterPeriodos);
+});
+
+function loadPeriodos() {
+    const loadingElement = document.getElementById('periodosLoading');
+    const containerElement = document.getElementById('periodosContainer');
+    const errorElement = document.getElementById('periodosError');
+    
+    // Reset states
+    loadingElement.classList.remove('d-none');
+    containerElement.classList.add('d-none');
+    errorElement.classList.add('d-none');
+    
+    fetch('/api/v1/materias/periodos/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        periodosData = data.results || data;
+        loadingElement.classList.add('d-none');
+        containerElement.classList.remove('d-none');
+        renderPeriodos(periodosData);
+    })
+    .catch(error => {
+        console.error('Error loading períodos:', error);
+        loadingElement.classList.add('d-none');
+        errorElement.classList.remove('d-none');
+    });
+}
+
+function loadPeriodosActivos() {
+    const loadingElement = document.getElementById('periodosLoading');
+    const containerElement = document.getElementById('periodosContainer');
+    const errorElement = document.getElementById('periodosError');
+    
+    // Reset states
+    loadingElement.classList.remove('d-none');
+    containerElement.classList.add('d-none');
+    errorElement.classList.add('d-none');
+    
+    fetch('/api/v1/materias/periodos/activos/', {
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        periodosData = data.results || data;
+        loadingElement.classList.add('d-none');
+        containerElement.classList.remove('d-none');
+        renderPeriodos(periodosData);
+        showAlert('info', `Se encontraron ${periodosData.length} períodos activos`);
+    })
+    .catch(error => {
+        console.error('Error loading períodos activos:', error);
+        loadingElement.classList.add('d-none');
+        errorElement.classList.remove('d-none');
+    });
+}
+
+function renderPeriodos(periodos) {
+    const gridElement = document.getElementById('periodosGrid');
+    const emptyElement = document.getElementById('periodosEmpty');
+    
+    if (periodos.length === 0) {
+        gridElement.innerHTML = '';
+        emptyElement.classList.remove('d-none');
+        return;
+    }
+    
+    emptyElement.classList.add('d-none');
+    
+    gridElement.innerHTML = periodos.map(periodo => `
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">${periodo.nombre}</h5>
+                        <span class="badge bg-${getEstadoBadgeColor(periodo.estado)}">${getEstadoDisplay(periodo.estado)}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                <strong>Inicio:</strong> ${formatDate(periodo.fecha_inicio)}
+                            </small>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-x me-1"></i>
+                                <strong>Fin:</strong> ${formatDate(periodo.fecha_fin)}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            <strong>Duración:</strong> ${getDuration(periodo.fecha_inicio, periodo.fecha_fin)} días
+                        </small>
+                    </div>
+                    
+                    ${periodo.es_activo ? '<div class="alert alert-success py-1 mb-2"><small><i class="bi bi-check-circle me-1"></i>Período Activo</small></div>' : ''}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid gap-2">
+                        {% if user.role == 'admin' %}
+                        <button class="btn btn-outline-warning btn-sm" onclick="showChangeEstado(${periodo.id}, '${periodo.nombre}', '${periodo.estado}')">
+                            <i class="bi bi-gear me-1"></i>
+                            Cambiar Estado
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterPeriodos() {
+    const search = document.getElementById('searchPeriodo').value.toLowerCase();
+    const estadoFilter = document.getElementById('filterEstado').value;
+    const yearFilter = document.getElementById('filterYear').value;
+    
+    const filtered = periodosData.filter(periodo => {
+        const matchSearch = !search || 
+            periodo.nombre.toLowerCase().includes(search);
+        
+        const matchEstado = !estadoFilter || periodo.estado === estadoFilter;
+        
+        const matchYear = !yearFilter || 
+            periodo.nombre.includes(yearFilter);
+        
+        return matchSearch && matchEstado && matchYear;
+    });
+    
+    renderPeriodos(filtered);
+}
+
+function clearFilters() {
+    document.getElementById('searchPeriodo').value = '';
+    document.getElementById('filterEstado').value = '';
+    document.getElementById('filterYear').value = '';
+    renderPeriodos(periodosData);
+}
+
+{% if user.role == 'admin' %}
+function createPeriodo() {
+    const data = {
+        nombre: document.getElementById('nombre').value,
+        fecha_inicio: document.getElementById('fechaInicio').value,
+        fecha_fin: document.getElementById('fechaFin').value,
+        estado: document.getElementById('estado').value,
+        descripcion: document.getElementById('descripcion').value
+    };
+    
+    // Validaciones básicas
+    if (!data.nombre || !data.fecha_inicio || !data.fecha_fin) {
+        showAlert('danger', 'Por favor completa todos los campos obligatorios');
+        return;
+    }
+    
+    if (new Date(data.fecha_inicio) >= new Date(data.fecha_fin)) {
+        showAlert('danger', 'La fecha de inicio debe ser anterior a la fecha de fin');
+        return;
+    }
+    
+    // Crear período via API REST
+    fetch('/api/v1/materias/periodos/', {
+        method: 'POST',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        showAlert('success', `Período ${data.nombre} creado exitosamente`);
+        bootstrap.Modal.getInstance(document.getElementById('createPeriodoModal')).hide();
+        document.getElementById('createPeriodoForm').reset();
+        loadPeriodos(); // Recargar lista
+    })
+    .catch(error => {
+        console.error('Error creating período:', error);
+        
+        let errorMsg = 'Error al crear el período';
+        if (error.nombre) {
+            errorMsg = `Error: ${error.nombre[0]}`;
+        } else if (error.non_field_errors) {
+            errorMsg = error.non_field_errors[0];
+        } else if (error.detail) {
+            errorMsg = error.detail;
+        }
+        
+        showAlert('danger', errorMsg);
+    });
+}
+
+function showChangeEstado(periodoId, periodoNombre, estadoActual) {
+    currentPeriodoId = periodoId;
+    
+    document.getElementById('currentPeriodoInfo').innerHTML = `
+        <strong>Período:</strong> ${periodoNombre}<br>
+        <strong>Estado Actual:</strong> <span class="badge bg-${getEstadoBadgeColor(estadoActual)}">${getEstadoDisplay(estadoActual)}</span>
+    `;
+    
+    // Pre-seleccionar el estado actual
+    document.getElementById('nuevoEstado').value = estadoActual;
+    
+    new bootstrap.Modal(document.getElementById('changeEstadoModal')).show();
+}
+
+function cambiarEstado() {
+    const nuevoEstado = document.getElementById('nuevoEstado').value;
+    
+    if (!nuevoEstado) {
+        showAlert('danger', 'Por favor selecciona un nuevo estado');
+        return;
+    }
+    
+    fetch(`/api/v1/materias/periodos/${currentPeriodoId}/cambiar_estado/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': getAuthHeader(),
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            estado: nuevoEstado
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        showAlert('success', `Estado del período cambiado a "${getEstadoDisplay(nuevoEstado)}" exitosamente`);
+        bootstrap.Modal.getInstance(document.getElementById('changeEstadoModal')).hide();
+        loadPeriodos(); // Recargar lista
+    })
+    .catch(error => {
+        console.error('Error changing estado:', error);
+        
+        let errorMsg = 'Error al cambiar el estado';
+        if (error.detail) {
+            errorMsg = error.detail;
+        } else if (error.non_field_errors) {
+            errorMsg = error.non_field_errors[0];
+        }
+        
+        showAlert('danger', errorMsg);
+    });
+}
+{% endif %}
+
+// Utility functions
+function getEstadoBadgeColor(estado) {
+    const colors = {
+        'planificacion': 'secondary',
+        'inscripciones': 'primary',
+        'en_curso': 'success',
+        'finalizado': 'warning',
+        'cerrado': 'danger'
+    };
+    return colors[estado] || 'secondary';
+}
+
+function getEstadoDisplay(estado) {
+    const displays = {
+        'planificacion': 'Planificación',
+        'inscripciones': 'Inscripciones',
+        'en_curso': 'En Curso',
+        'finalizado': 'Finalizado',
+        'cerrado': 'Cerrado'
+    };
+    return displays[estado] || estado;
+}
+
+function getDuration(fechaInicio, fechaFin) {
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    const diffTime = Math.abs(fin - inicio);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+function getAuthHeader() {
+    const token = localStorage.getItem('access_token');
+    return token ? `Bearer ${token}` : '';
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer') || createAlertContainer();
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}-fill me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    alertContainer.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function createAlertContainer() {
+    const container = document.createElement('div');
+    container.id = 'alertContainer';
+    container.style.position = 'fixed';
+    container.style.top = '80px';
+    container.style.right = '20px';
+    container.style.zIndex = '9999';
+    container.style.maxWidth = '400px';
+    document.body.appendChild(container);
+    return container;
+}
+</script>
+{% endblock %} 

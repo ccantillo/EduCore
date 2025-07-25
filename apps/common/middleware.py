@@ -92,6 +92,7 @@ class SecurityMiddleware:
 class RequestLoggingMiddleware:
     """
     Middleware para logging detallado de solicitudes.
+    Registra información de usuario, duración, IP y User-Agent.
     """
     
     def __init__(self, get_response):
@@ -99,20 +100,37 @@ class RequestLoggingMiddleware:
     
     def __call__(self, request):
         """Registrar información detallada de la solicitud."""
+        import time
         
-        # Solo registrar en desarrollo o cuando se solicite explícitamente
-        if settings.DEBUG:
-            logger.debug(
-                f"Solicitud: {request.method} {request.path} "
-                f"desde {request.META.get('REMOTE_ADDR', 'unknown')} "
-                f"User-Agent: {request.META.get('HTTP_USER_AGENT', 'unknown')}"
-            )
+        # Obtener tiempo de inicio
+        start_time = time.time()
         
+        # Obtener información del usuario
+        if hasattr(request, 'user') and request.user and request.user.is_authenticated:
+            user_info = f"{request.user.username} ({request.user.role})"
+        else:
+            user_info = "anonymous"
+        
+        # Obtener IP y User-Agent
+        ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+        user_agent = request.META.get('HTTP_USER_AGENT', 'unknown')
+        
+        # Procesar la solicitud
         response = self.get_response(request)
         
-        if settings.DEBUG:
-            logger.debug(
-                f"Respuesta: {response.status_code} para {request.method} {request.path}"
-            )
+        # Calcular duración
+        end_time = time.time()
+        duration_ms = round((end_time - start_time) * 1000, 2)
+        
+        # Registrar información completa
+        logger.info(
+            f"User: {user_info} | "
+            f"Method: {request.method} | "
+            f"Path: {request.path} | "
+            f"IP: {ip_address} | "
+            f"User-Agent: {user_agent} | "
+            f"Duration: {duration_ms}ms | "
+            f"Status: {response.status_code}"
+        )
         
         return response 

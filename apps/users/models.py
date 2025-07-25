@@ -50,7 +50,10 @@ class User(AbstractUser):
         db_table = 'users'
     
     def __str__(self):
-        return f"{self.get_full_name()} ({self.get_role_display()})"
+        if self.first_name and self.last_name:
+            return f"{self.get_full_name()} ({self.get_role_display()})"
+        else:
+            return self.username
     
     @property
     def is_admin(self):
@@ -97,6 +100,13 @@ class Profile(models.Model):
         verbose_name='Dirección'
     )
     
+    # Documento de identificación
+    identification = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name='Identificación'
+    )
+    
     # Información académica (para estudiantes)
     student_id = models.CharField(
         max_length=20,
@@ -105,12 +115,23 @@ class Profile(models.Model):
         verbose_name='Código de estudiante'
     )
     
+    max_credits_per_semester = models.PositiveIntegerField(
+        default=18,
+        verbose_name='Máximo créditos por semestre'
+    )
+    
     # Información profesional (para profesores)
     professional_id = models.CharField(
         max_length=20,
         blank=True,
         unique=True,
         verbose_name='Código profesional'
+    )
+    
+    department = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Departamento'
     )
     
     # Campos de auditoría
@@ -123,7 +144,7 @@ class Profile(models.Model):
         db_table = 'user_profiles'
     
     def __str__(self):
-        return f"Perfil de {self.user.get_full_name()}"
+        return f"{self.user.get_full_name() or self.user.username} - {self.user.get_role_display()}"
     
     def save(self, *args, **kwargs):
         """Sobrescribe save para generar códigos automáticamente."""

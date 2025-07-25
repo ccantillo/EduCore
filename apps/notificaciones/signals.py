@@ -1,12 +1,17 @@
+import logging
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.utils import timezone
 
 from .models import Notificacion
 from apps.users.models import User
 from apps.inscripciones.models import Inscripcion, Calificacion
 from apps.materias.models import Materia
+
+# Configurar logger
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=User)
@@ -16,10 +21,21 @@ def crear_notificacion_bienvenida(sender, instance, created, **kwargs):
     """
     if created:
         try:
-            Notificacion.notificar_bienvenida(instance)
+            # Crear notificación de bienvenida
+            notification = Notificacion.notificar_bienvenida(instance)
+            logger.info(f"Notificación de bienvenida creada para {instance.username}")
+            
+            # Enviar email de bienvenida usando la tarea asíncrona
+            try:
+                from apps.common.tasks import enviar_email_bienvenida
+                enviar_email_bienvenida.delay(instance.id)
+                logger.info(f"Tarea de email de bienvenida programada para {instance.username}")
+            except Exception as email_error:
+                logger.error(f"Error programando email de bienvenida para {instance.username}: {email_error}")
+                
         except Exception as e:
             # Log del error pero no fallar la creación del usuario
-            print(f"Error al crear notificación de bienvenida: {e}")
+            logger.error(f"Error al crear notificación de bienvenida para {instance.username}: {e}")
 
 
 @receiver(post_save, sender=Inscripcion)
@@ -31,7 +47,7 @@ def notificar_inscripcion(sender, instance, created, **kwargs):
         try:
             Notificacion.notificar_inscripcion_exitosa(instance)
         except Exception as e:
-            print(f"Error al crear notificación de inscripción: {e}")
+            logger.error(f"Error al crear notificación de inscripción: {e}")
 
 
 @receiver(post_save, sender=Calificacion)
@@ -42,8 +58,18 @@ def notificar_calificacion(sender, instance, created, **kwargs):
     if created:
         try:
             Notificacion.notificar_calificacion_publicada(instance)
+            logger.info(f"Notificación de calificación creada para estudiante {instance.inscripcion.estudiante.username}")
+            
+            # Enviar email de notificación de calificación
+            try:
+                from apps.common.tasks import enviar_notificacion_calificacion
+                enviar_notificacion_calificacion.delay(instance.inscripcion.id, instance.id)
+                logger.info(f"Tarea de email de calificación programada")
+            except Exception as email_error:
+                logger.error(f"Error programando email de calificación: {email_error}")
+                
         except Exception as e:
-            print(f"Error al crear notificación de calificación: {e}")
+            logger.error(f"Error al crear notificación de calificación: {e}")
 
 
 @receiver(post_save, sender=Materia)
@@ -60,11 +86,13 @@ def notificar_asignacion_materia(sender, instance, **kwargs):
                     materia_anterior = Materia.objects.get(pk=instance.pk)
                     if materia_anterior.profesor != instance.profesor:
                         Notificacion.notificar_materia_asignada(instance, instance.profesor)
+                        logger.info(f"Notificación de asignación de materia creada para {instance.profesor.username}")
                 except Materia.DoesNotExist:
                     # Es una nueva materia con profesor asignado
                     Notificacion.notificar_materia_asignada(instance, instance.profesor)
+                    logger.info(f"Notificación de nueva materia creada para {instance.profesor.username}")
         except Exception as e:
-            print(f"Error al crear notificación de asignación de materia: {e}")
+            logger.error(f"Error al crear notificación de asignación de materia: {e}")
 
 
 # Señal personalizada para inscripciones rechazadas
@@ -76,7 +104,7 @@ def notificar_inscripcion_rechazada(estudiante, materia, periodo, motivo):
     try:
         Notificacion.notificar_inscripcion_rechazada(estudiante, materia, periodo, motivo)
     except Exception as e:
-        print(f"Error al crear notificación de inscripción rechazada: {e}")
+        logger.error(f"Error al crear notificación de inscripción rechazada: {e}")
 
 
 # Señal personalizada para notificaciones del sistema
@@ -91,8 +119,9 @@ def crear_notificacion_sistema(usuario, titulo, mensaje):
             titulo=titulo,
             mensaje=mensaje
         )
+        logger.info(f"Notificación del sistema creada para {usuario.username}")
     except Exception as e:
-        print(f"Error al crear notificación del sistema: {e}")
+        logger.error(f"Error al crear notificación del sistema: {e}")
 
 
 # Señal personalizada para recordatorios
@@ -107,8 +136,9 @@ def crear_recordatorio(usuario, titulo, mensaje):
             titulo=titulo,
             mensaje=mensaje
         )
+        logger.info(f"Recordatorio creado para {usuario.username}")
     except Exception as e:
-        print(f"Error al crear recordatorio: {e}")
+        logger.error(f"Error al crear recordatorio: {e}")
 
 
 # Función para limpiar notificaciones antiguas
@@ -130,11 +160,11 @@ def limpiar_notificaciones_antiguas(dias=30):
         count = notificaciones_antiguas.count()
         notificaciones_antiguas.update(estado='archivada')
         
-        print(f"Se archivaron {count} notificaciones antiguas")
+        logger.info(f"Se archivaron {count} notificaciones antiguas")
         
         return count
     except Exception as e:
-        print(f"Error al limpiar notificaciones antiguas: {e}")
+        logger.error(f"Error al limpiar notificaciones antiguas: {e}")
         return 0
 
 
@@ -154,15 +184,18 @@ def obtener_estadisticas_notificaciones(usuario=None):
         leidas = queryset.filter(estado='leida').count()
         archivadas = queryset.filter(estado='archivada').count()
         
-        return {
+        stats = {
             'total': total,
             'no_leidas': no_leidas,
             'leidas': leidas,
             'archivadas': archivadas,
             'porcentaje_leidas': round((leidas / total * 100) if total > 0 else 0, 2)
         }
+        
+        logger.info(f"Estadísticas de notificaciones generadas: {stats}")
+        return stats
     except Exception as e:
-        print(f"Error al obtener estadísticas de notificaciones: {e}")
+        logger.error(f"Error al obtener estadísticas de notificaciones: {e}")
         return {
             'total': 0,
             'no_leidas': 0,

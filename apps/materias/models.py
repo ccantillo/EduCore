@@ -96,11 +96,26 @@ class Materia(models.Model):
         return None
 
 
+class PrerrequisitoManager(models.Manager):
+    """Manager personalizado para manejar alias de campos."""
+    
+    def create(self, **kwargs):
+        # Mapear alias a campos reales
+        if 'materia_principal' in kwargs:
+            kwargs['materia'] = kwargs.pop('materia_principal')
+        if 'materia_prerequisito' in kwargs:
+            kwargs['prerrequisito'] = kwargs.pop('materia_prerequisito')
+        
+        return super().create(**kwargs)
+
+
 class Prerrequisito(models.Model):
     """
     Modelo para manejar prerrequisitos entre materias.
     Permite definir qué materias son necesarias para inscribir otra.
     """
+    
+    objects = PrerrequisitoManager()
     
     materia = models.ForeignKey(
         Materia,
@@ -141,6 +156,27 @@ class Prerrequisito(models.Model):
     
     def __str__(self):
         return f"{self.materia.codigo} requiere {self.prerrequisito.codigo}"
+    
+    # Propiedades para compatibilidad con pruebas
+    @property
+    def materia_principal(self):
+        """Alias para materia."""
+        return self.materia
+    
+    @materia_principal.setter
+    def materia_principal(self, value):
+        """Setter para materia_principal."""
+        self.materia = value
+    
+    @property
+    def materia_prerequisito(self):
+        """Alias para prerrequisito."""
+        return self.prerrequisito
+    
+    @materia_prerequisito.setter
+    def materia_prerequisito(self, value):
+        """Setter para materia_prerequisito."""
+        self.prerrequisito = value
     
     def clean(self):
         """Validaciones personalizadas."""
@@ -199,6 +235,12 @@ class Periodo(models.Model):
         choices=ESTADO_CHOICES,
         default='planificacion',
         verbose_name='Estado'
+    )
+    
+    # Campo activo para compatibilidad con pruebas
+    activo = models.BooleanField(
+        default=True,
+        verbose_name='Activo'
     )
     
     # Campos de auditoría

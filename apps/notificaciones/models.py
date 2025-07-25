@@ -61,6 +61,12 @@ class Notificacion(models.Model):
         verbose_name='Estado'
     )
     
+    # Campo leida para compatibilidad con pruebas
+    leida = models.BooleanField(
+        default=False,
+        verbose_name='Leída'
+    )
+    
     # Campos adicionales
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
     fecha_lectura = models.DateTimeField(null=True, blank=True, verbose_name='Fecha de lectura')
@@ -87,8 +93,9 @@ class Notificacion(models.Model):
         if self.estado == 'no_leida':
             from django.utils import timezone
             self.estado = 'leida'
+            self.leida = True
             self.fecha_lectura = timezone.now()
-            self.save(update_fields=['estado', 'fecha_lectura'])
+            self.save(update_fields=['estado', 'leida', 'fecha_lectura'])
     
     def archivar(self):
         """Archivar la notificación."""
@@ -125,7 +132,7 @@ class Notificacion(models.Model):
     @classmethod
     def notificar_bienvenida(cls, usuario):
         """Crear notificación de bienvenida para nuevos usuarios."""
-        titulo = "¡Bienvenido al Sistema Académico!"
+        titulo = "Bienvenido al Sistema Académico"
         mensaje = f"""
         Hola {usuario.get_full_name() or usuario.username},
         

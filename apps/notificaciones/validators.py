@@ -1,4 +1,4 @@
 # validators.py para la app notificaciones
-# Aquí se implementarán validadores personalizados para notificaciones.
+# Validaciones para notificaciones - emails válidos, tipos permitidos
 
-# Validadores serán agregados posteriormente. 
+# TODO: validadores cuando los necesitemos 

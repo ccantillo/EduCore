@@ -1,5 +1,5 @@
 # views.py para la app notificaciones
-# Aquí se implementarán las vistas relacionadas con notificaciones.
+# Vistas para ver notificaciones, marcar como leídas, configurar preferencias
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action

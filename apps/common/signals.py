@@ -1,4 +1,4 @@
 # signals.py para la app common
-# Aquí se implementarán señales comunes y base.
+# Señales que se disparan en toda la app - logging, auditoría, etc.
 
-# Señales serán agregadas posteriormente. 
+# TODO: señales cuando las necesitemos 

@@ -1,7 +1,7 @@
 # tasks.py para la app reportes
-# Aquí se implementarán tareas asíncronas relacionadas con reportes.
+# Tareas para generar reportes pesados en background, enviar por email
 
-# Tareas serán agregadas posteriormente. 
+# TODO: tareas cuando las necesitemos 
 from celery import shared_task
 from django.utils import timezone
 from apps.users.models import User

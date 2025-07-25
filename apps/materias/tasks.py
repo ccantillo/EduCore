@@ -1,4 +1,4 @@
 # tasks.py para la app materias
-# Aquí se implementarán tareas asíncronas relacionadas con materias.
+# Tareas programadas - notificar cupos disponibles, actualizar horarios
 
-# Tareas serán agregadas posteriormente. 
+# TODO: tareas cuando las necesitemos 

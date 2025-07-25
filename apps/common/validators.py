@@ -1,4 +1,4 @@
 # validators.py para la app common
-# Aquí se implementarán validadores base y reutilizables.
+# Validadores que usamos en múltiples apps - fechas, formatos, etc.
 
-# Validadores serán agregados posteriormente. 
+# TODO: validadores cuando los necesitemos 

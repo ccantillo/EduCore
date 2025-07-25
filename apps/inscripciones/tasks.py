@@ -1,4 +1,4 @@
 # tasks.py para la app inscripciones
-# Aquí se implementarán tareas asíncronas relacionadas con inscripciones.
+# Tareas automáticas - enviar confirmaciones, recordatorios de matrícula
 
-# Tareas serán agregadas posteriormente. 
+# TODO: tareas cuando las necesitemos 

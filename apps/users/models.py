@@ -1,5 +1,5 @@
 # models.py para la app users
-# Aquí se definirán los modelos relacionados con usuarios, roles y perfiles.
+# Todo lo relacionado con usuarios, roles y perfiles académicos
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models

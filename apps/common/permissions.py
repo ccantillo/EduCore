@@ -1,4 +1,4 @@
 # permissions.py para la app common
-# Aquí se definirán permisos base y clases reutilizables.
+# Permisos base que heredan las otras apps - IsOwner, IsActive, etc.
 
-# Permisos serán agregados posteriormente. 
+# TODO: permisos cuando los necesitemos 

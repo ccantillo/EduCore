@@ -1,4 +1,4 @@
 # validators.py para la app inscripciones
-# Aquí se implementarán validadores personalizados para inscripciones.
+# Validaciones para inscripciones - prerrequisitos cumplidos, cupos disponibles
 
-# Validadores serán agregados posteriormente. 
+# TODO: validadores cuando los necesitemos 

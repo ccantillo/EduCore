@@ -1,5 +1,5 @@
 # serializers.py para la app reportes
-# Aquí se definirán los serializers para los modelos de reportes.
+# Serializers para reportes - parámetros de filtrado, metadatos de archivos
 
 from rest_framework import serializers
 from .models import ReporteGenerado

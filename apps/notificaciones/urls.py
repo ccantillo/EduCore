@@ -1,5 +1,5 @@
 # urls.py para la app notificaciones
-# Aquí se definirán las rutas de la app notificaciones.
+# Rutas para ver notificaciones, marcarlas como leídas, configuraciones
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter

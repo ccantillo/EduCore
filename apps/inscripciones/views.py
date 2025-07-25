@@ -1,5 +1,5 @@
 # views.py para la app inscripciones
-# Aquí se implementarán las vistas relacionadas con inscripciones.
+# Vistas para inscribirse, ver estado de inscripciones, cancelar materias
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action

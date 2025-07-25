@@ -1,4 +1,4 @@
 # signals.py para la app inscripciones
-# Aquí se implementarán señales relacionadas con inscripciones.
+# Señales de inscripciones - notificar al inscribirse, cambios de estado
 
-# Señales serán agregadas posteriormente. 
+# TODO: señales cuando las necesitemos 

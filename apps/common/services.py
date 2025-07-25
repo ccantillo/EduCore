@@ -1,4 +1,4 @@
 # services.py para la app common
-# Aquí irá la lógica de negocio común y utilitaria.
+# Lógica compartida entre apps - helpers, utilidades, funciones comunes
 
-# Servicios serán agregados posteriormente. 
+# TODO: funciones comunes cuando las necesitemos 

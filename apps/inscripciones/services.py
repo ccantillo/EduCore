@@ -1,4 +1,4 @@
 # services.py para la app inscripciones
-# Aquí irá la lógica de negocio relacionada con inscripciones.
+# Lógica para inscribir estudiantes - validar prerrequisitos, límites de créditos
 
-# Servicios serán agregados posteriormente. 
+# TODO: lógica de negocio cuando la necesitemos 

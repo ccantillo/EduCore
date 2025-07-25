@@ -396,11 +396,13 @@ apps/
 
 ### 🗄️ Esquema de Base de Datos
 
-Ver: [docs/database_schema.md](docs/database_schema.md)
+- **Documentación detallada**: [docs/database_schema.md](docs/database_schema.md)
+- **Diagrama visual renderizado**: [docs/visual_diagrams.md](docs/visual_diagrams.md)
 
 ### 🔄 Diagrama de Flujo
 
-Ver: [docs/project_flow.md](docs/project_flow.md)
+- **Documentación detallada**: [docs/project_flow.md](docs/project_flow.md)
+- **Diagrama visual renderizado**: [docs/visual_diagrams.md](docs/visual_diagrams.md)
 
 ### 🏗️ Arquitectura del Proyecto
 

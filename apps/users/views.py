@@ -113,7 +113,10 @@ class UserViewSet(viewsets.ModelViewSet):
         """Configurar permisos según la acción."""
         if self.action == 'create':
             permission_classes = [AllowAny]
-        elif self.action in ['list', 'destroy']:
+        elif self.action == 'list':
+            # Permitir que admins y profesores listen usuarios (para reportes)
+            permission_classes = [IsAdminOrProfesorOrSelf]
+        elif self.action == 'destroy':
             permission_classes = [IsAdminUser]
         else:
             permission_classes = [IsAdminOrSelf]
@@ -125,15 +128,22 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         
         if user.is_admin:
-            return User.objects.select_related('profile').all()
+            queryset = User.objects.select_related('profile').all()
         elif user.is_profesor:
             # Los profesores pueden ver estudiantes y otros profesores
-            return User.objects.select_related('profile').filter(
+            queryset = User.objects.select_related('profile').filter(
                 role__in=['estudiante', 'profesor']
             )
         else:
             # Los estudiantes solo pueden ver su propio perfil
-            return User.objects.select_related('profile').filter(id=user.id)
+            queryset = User.objects.select_related('profile').filter(id=user.id)
+        
+        # Filtrar por rol si se proporciona el parámetro
+        role_filter = self.request.query_params.get('role', None)
+        if role_filter:
+            queryset = queryset.filter(role=role_filter)
+        
+        return queryset
     
     @action(detail=False, methods=['get'])
     def me(self, request):

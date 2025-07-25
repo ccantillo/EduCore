@@ -489,7 +489,7 @@ class EstudianteReportAPIView(views.APIView):
             from apps.inscripciones.models import Inscripcion, Calificacion
             
             # Verificar permisos
-            if not (request.user.is_admin or request.user.is_profesor):
+            if not (request.user.role == 'admin' or request.user.role == 'profesor'):
                 return Response(
                     {'error': 'No tienes permisos para generar reportes de estudiantes.'},
                     status=status.HTTP_403_FORBIDDEN
@@ -568,7 +568,7 @@ class ProfesorReportAPIView(views.APIView):
     Endpoint específico para generar reportes CSV de profesores.
     URL: /api/reportes/profesor/{id}/
     """
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
     
     def get(self, request, id):
         """Generar y retornar CSV del profesor directamente."""
@@ -576,6 +576,13 @@ class ProfesorReportAPIView(views.APIView):
             from apps.users.models import User
             from apps.materias.models import Materia
             from apps.inscripciones.models import Inscripcion
+            
+            # Verificar permisos (solo admins pueden generar reportes de profesores)
+            if not request.user.role == 'admin':
+                return Response(
+                    {'error': 'Solo los administradores pueden generar reportes de profesores.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
             
             # Verificar que el profesor existe
             try:

@@ -20,7 +20,7 @@
     </div>
 </div>
 
-<!-- Quick Report Cards -->
+<!-- Individual Report Cards -->
 <div class="row mb-4">
     <div class="col-md-6 mb-3">
         <div class="card h-100">
@@ -29,15 +29,21 @@
                     <div>
                         <h5 class="card-title">
                             <i class="bi bi-person-lines-fill text-primary me-2"></i>
-                            Reporte de Estudiantes
+                            Reporte Individual de Estudiante
                         </h5>
                         <p class="card-text text-muted">
-                            Descarga información completa de estudiantes incluyendo materias, calificaciones y promedios.
+                            Genera reporte CSV de un estudiante específico con sus materias, calificaciones, estado y promedio general.
                         </p>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label for="selectEstudiante" class="form-label">Seleccionar Estudiante:</label>
+                    <select class="form-select" id="selectEstudiante">
+                        <option value="">Cargar estudiantes...</option>
+                    </select>
+                </div>
                 <div class="d-grid">
-                    <button class="btn btn-primary" onclick="generateEstudianteReport()">
+                    <button class="btn btn-primary" onclick="generateEstudianteReport()" id="btnGenerateEstudiante" disabled>
                         <i class="bi bi-download me-1"></i>
                         Generar CSV
                     </button>
@@ -53,15 +59,21 @@
                     <div>
                         <h5 class="card-title">
                             <i class="bi bi-person-workspace text-success me-2"></i>
-                            Reporte de Profesores
+                            Reporte Individual de Profesor
                         </h5>
                         <p class="card-text text-muted">
-                            Descarga información de profesores con sus materias asignadas y estadísticas de estudiantes.
+                            Genera reporte CSV de un profesor específico con sus materias asignadas y estadísticas de estudiantes.
                         </p>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label for="selectProfesor" class="form-label">Seleccionar Profesor:</label>
+                    <select class="form-select" id="selectProfesor">
+                        <option value="">Cargar profesores...</option>
+                    </select>
+                </div>
                 <div class="d-grid">
-                    <button class="btn btn-success" onclick="generateProfesorReport()">
+                    <button class="btn btn-success" onclick="generateProfesorReport()" id="btnGenerateProfesor" disabled>
                         <i class="bi bi-download me-1"></i>
                         Generar CSV
                     </button>
@@ -71,106 +83,9 @@
     </div>
 </div>
 
-<!-- Custom Report Builder -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="bi bi-sliders me-2"></i>
-            Generador de Reportes Personalizado
-        </h5>
-    </div>
-    <div class="card-body">
-        <form id="customReportForm">
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label for="reportType" class="form-label">Tipo de Reporte</label>
-                    <select class="form-select" id="reportType" required>
-                        <option value="">Seleccionar...</option>
-                        <option value="estudiantes">Estudiantes</option>
-                        <option value="profesores">Profesores</option>
-                        <option value="materias">Materias</option>
-                        <option value="inscripciones">Inscripciones</option>
-                        <option value="calificaciones">Calificaciones</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="periodo" class="form-label">Período</label>
-                    <select class="form-select" id="periodo">
-                        <option value="">Todos los períodos</option>
-                        <option value="2024-1">2024-1</option>
-                        <option value="2024-2">2024-2</option>
-                        <option value="2025-1">2025-1</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="estado" class="form-label">Estado</label>
-                    <select class="form-select" id="estado">
-                        <option value="">Todos los estados</option>
-                        <option value="activa">Activa</option>
-                        <option value="aprobada">Aprobada</option>
-                        <option value="reprobada">Reprobada</option>
-                    </select>
-                </div>
-            </div>
-            
-            <!-- Additional Filters -->
-            <div class="row g-3 mb-3" id="additionalFilters" style="display: none;">
-                <div class="col-md-6">
-                    <label for="fechaInicio" class="form-label">Fecha Inicio</label>
-                    <input type="date" class="form-control" id="fechaInicio">
-                </div>
-                <div class="col-md-6">
-                    <label for="fechaFin" class="form-label">Fecha Fin</label>
-                    <input type="date" class="form-control" id="fechaFin">
-                </div>
-            </div>
-            
-            <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-outline-secondary" onclick="toggleAdvancedFilters()">
-                    <i class="bi bi-funnel me-1"></i>
-                    Filtros Avanzados
-                </button>
-                <button type="button" class="btn btn-primary" onclick="generateCustomReport()">
-                    <i class="bi bi-gear me-1"></i>
-                    Generar Reporte Personalizado
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<!-- Recent Reports -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="bi bi-clock-history me-2"></i>
-            Reportes Recientes
-        </h5>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Fecha Generación</th>
-                        <th>Estado</th>
-                        <th>Tamaño</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="recentReportsBody">
-                    <!-- Los reportes se cargarán dinámicamente aquí -->
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="alert alert-info d-none" id="noReportsAlert">
-            <i class="bi bi-info-circle me-2"></i>
-            No hay reportes generados aún. <a href="#" onclick="showGenerateModal()">¡Genera tu primer reporte!</a>
-        </div>
-    </div>
-</div>
+
+
 {% endblock %}
 
 {% block extra_js %}
@@ -180,6 +95,19 @@ let reportesData = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     loadReportes();
+    loadEstudiantes();
+    loadProfesores();
+    
+    // Event listeners para habilitar botones cuando se selecciona
+    document.getElementById('selectEstudiante').addEventListener('change', function() {
+        const btn = document.getElementById('btnGenerateEstudiante');
+        btn.disabled = !this.value;
+    });
+    
+    document.getElementById('selectProfesor').addEventListener('change', function() {
+        const btn = document.getElementById('btnGenerateProfesor');
+        btn.disabled = !this.value;
+    });
 });
 
 function loadReportes() {
@@ -305,23 +233,58 @@ function updateReportesCount() {
 }
 
 function generateEstudianteReport() {
-    showLoadingMessage('Generando reporte de estudiantes...');
+    const estudianteId = document.getElementById('selectEstudiante').value;
     
-    fetch('/api/v1/reportes/estudiantes/{{ user.id }}/reporte/', {
-        headers: {
-            'Authorization': getAuthHeader(),
-            'Content-Type': 'application/json'
-        }
+    if (!estudianteId) {
+        showAlert('warning', 'Por favor selecciona un estudiante');
+        return;
+    }
+    
+    const estudianteSelect = document.getElementById('selectEstudiante');
+    const estudianteNombre = estudianteSelect.options[estudianteSelect.selectedIndex].text;
+    
+    showLoadingMessage(`Generando reporte del estudiante ${estudianteNombre}...`);
+    
+    const headers = {};
+    
+    // Agregar CSRF token para sesiones de Django
+    const csrftoken = getCookie('csrftoken');
+    if (csrftoken) {
+        headers['X-CSRFToken'] = csrftoken;
+    }
+    
+    // Agregar autenticación JWT si está disponible
+    const authHeader = getAuthHeader();
+    if (authHeader) {
+        headers['Authorization'] = authHeader;
+    }
+    
+    fetch(`/api/v1/reportes/estudiante/${estudianteId}/`, {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include'
     })
     .then(response => {
-        if (!response.ok) throw new Error('Error al generar reporte');
+        console.log('Report response status:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => {
+                let errorMsg = 'Error al generar reporte';
+                try {
+                    const errorData = JSON.parse(text);
+                    errorMsg = errorData.error || errorMsg;
+                } catch (e) {
+                    errorMsg = text || errorMsg;
+                }
+                throw new Error(errorMsg);
+            });
+        }
         return response.blob();
     })
     .then(blob => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `reporte_estudiantes_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `reporte_estudiante_${estudianteId}_${new Date().toISOString().split('T')[0]}.csv`;
         link.style.display = 'none';
         
         document.body.appendChild(link);
@@ -329,84 +292,67 @@ function generateEstudianteReport() {
         document.body.removeChild(link);
         
         window.URL.revokeObjectURL(url);
-        showAlert('success', 'Reporte de estudiantes descargado exitosamente');
+        showAlert('success', `Reporte del estudiante ${estudianteNombre} descargado exitosamente`);
     })
     .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', 'Error al generar el reporte de estudiantes');
+        console.error('Error generating student report:', error);
+        showAlert('danger', `Error al generar el reporte del estudiante: ${error.message}`);
     });
 }
 
 function generateProfesorReport() {
-    showLoadingMessage('Generando reporte de profesores...');
+    const profesorId = document.getElementById('selectProfesor').value;
     
-    fetch('/api/v1/reportes/profesores/{{ user.id }}/reporte/', {
-        headers: {
-            'Authorization': getAuthHeader(),
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Error al generar reporte');
-        return response.blob();
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `reporte_profesores_${new Date().toISOString().split('T')[0]}.csv`;
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        window.URL.revokeObjectURL(url);
-        showAlert('success', 'Reporte de profesores descargado exitosamente');
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', 'Error al generar el reporte de profesores');
-    });
-}
-
-function generateCustomReport() {
-    const reportType = document.getElementById('reportType').value;
-    const periodo = document.getElementById('periodo').value;
-    const estado = document.getElementById('estado').value;
-    const fechaInicio = document.getElementById('fechaInicio').value;
-    const fechaFin = document.getElementById('fechaFin').value;
-    
-    if (!reportType) {
-        showAlert('warning', 'Por favor selecciona un tipo de reporte');
+    if (!profesorId) {
+        showAlert('warning', 'Por favor selecciona un profesor');
         return;
     }
     
-    showLoadingMessage(`Generando reporte personalizado de ${reportType}...`);
+    const profesorSelect = document.getElementById('selectProfesor');
+    const profesorNombre = profesorSelect.options[profesorSelect.selectedIndex].text;
     
-    // Construir parámetros para la llamada a la API
-    const params = new URLSearchParams();
-    if (periodo) params.append('periodo', periodo);
-    if (estado) params.append('estado', estado);
-    if (fechaInicio) params.append('fecha_inicio', fechaInicio);
-    if (fechaFin) params.append('fecha_fin', fechaFin);
-    params.append('formato', 'csv');
+    showLoadingMessage(`Generando reporte del profesor ${profesorNombre}...`);
     
-    fetch(`/api/v1/reportes/reportes/personalizado/?tipo=${reportType}&${params.toString()}`, {
-        headers: {
-            'Authorization': getAuthHeader(),
-            'Content-Type': 'application/json'
-        }
+    const headers = {};
+    
+    // Agregar CSRF token para sesiones de Django
+    const csrftoken = getCookie('csrftoken');
+    if (csrftoken) {
+        headers['X-CSRFToken'] = csrftoken;
+    }
+    
+    // Agregar autenticación JWT si está disponible
+    const authHeader = getAuthHeader();
+    if (authHeader) {
+        headers['Authorization'] = authHeader;
+    }
+    
+    fetch(`/api/v1/reportes/profesor/${profesorId}/`, {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include'
     })
     .then(response => {
-        if (!response.ok) throw new Error('Error al generar reporte personalizado');
+        console.log('Report response status:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => {
+                let errorMsg = 'Error al generar reporte';
+                try {
+                    const errorData = JSON.parse(text);
+                    errorMsg = errorData.error || errorMsg;
+                } catch (e) {
+                    errorMsg = text || errorMsg;
+                }
+                throw new Error(errorMsg);
+            });
+        }
         return response.blob();
     })
     .then(blob => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `reporte_${reportType}_personalizado_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `reporte_profesor_${profesorId}_${new Date().toISOString().split('T')[0]}.csv`;
         link.style.display = 'none';
         
         document.body.appendChild(link);
@@ -414,17 +360,135 @@ function generateCustomReport() {
         document.body.removeChild(link);
         
         window.URL.revokeObjectURL(url);
-        showAlert('success', 'Reporte personalizado descargado exitosamente');
-        
-        // Limpiar el formulario
-        document.getElementById('customReportForm').reset();
-        document.getElementById('additionalFilters').style.display = 'none';
+        showAlert('success', `Reporte del profesor ${profesorNombre} descargado exitosamente`);
     })
     .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', 'Error al generar el reporte personalizado');
+        console.error('Error generating professor report:', error);
+        showAlert('danger', `Error al generar el reporte del profesor: ${error.message}`);
     });
 }
+
+function loadEstudiantes() {
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    
+    // Agregar CSRF token para sesiones de Django
+    const csrftoken = getCookie('csrftoken');
+    if (csrftoken) {
+        headers['X-CSRFToken'] = csrftoken;
+    }
+    
+    // Agregar autenticación JWT si está disponible
+    const authHeader = getAuthHeader();
+    if (authHeader) {
+        headers['Authorization'] = authHeader;
+    }
+    
+    fetch('/api/v1/users/users/?role=estudiante', {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include'  // Incluir cookies de sesión
+    })
+    .then(response => {
+        console.log('Response status for estudiantes:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Estudiantes data:', data);
+        const select = document.getElementById('selectEstudiante');
+        select.innerHTML = '<option value="">Seleccionar estudiante...</option>';
+        
+        const users = data.results || data;
+        // Filtrar solo estudiantes en el frontend si el backend no lo hace
+        const estudiantes = Array.isArray(users) ? users.filter(user => user.role === 'estudiante') : [];
+        
+        if (estudiantes.length === 0) {
+            select.innerHTML = '<option value="">No hay estudiantes disponibles</option>';
+            return;
+        }
+        
+        estudiantes.forEach(estudiante => {
+            const option = document.createElement('option');
+            option.value = estudiante.id;
+            option.textContent = `${estudiante.first_name} ${estudiante.last_name} (${estudiante.username})`;
+            select.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading estudiantes:', error);
+        const select = document.getElementById('selectEstudiante');
+        select.innerHTML = '<option value="">Error al cargar estudiantes</option>';
+        showAlert('danger', `Error al cargar estudiantes: ${error.message}`);
+    });
+}
+
+function loadProfesores() {
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    
+    // Agregar CSRF token para sesiones de Django
+    const csrftoken = getCookie('csrftoken');
+    if (csrftoken) {
+        headers['X-CSRFToken'] = csrftoken;
+    }
+    
+    // Agregar autenticación JWT si está disponible
+    const authHeader = getAuthHeader();
+    if (authHeader) {
+        headers['Authorization'] = authHeader;
+    }
+    
+    fetch('/api/v1/users/users/?role=profesor', {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include'  // Incluir cookies de sesión
+    })
+    .then(response => {
+        console.log('Response status for profesores:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Profesores data:', data);
+        const select = document.getElementById('selectProfesor');
+        select.innerHTML = '<option value="">Seleccionar profesor...</option>';
+        
+        const users = data.results || data;
+        // Filtrar solo profesores en el frontend si el backend no lo hace
+        const profesores = Array.isArray(users) ? users.filter(user => user.role === 'profesor') : [];
+        
+        if (profesores.length === 0) {
+            select.innerHTML = '<option value="">No hay profesores disponibles</option>';
+            return;
+        }
+        
+        profesores.forEach(profesor => {
+            const option = document.createElement('option');
+            option.value = profesor.id;
+            option.textContent = `${profesor.first_name} ${profesor.last_name} (${profesor.username})`;
+            select.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading profesores:', error);
+        const select = document.getElementById('selectProfesor');
+        select.innerHTML = '<option value="">Error al cargar profesores</option>';
+        showAlert('danger', `Error al cargar profesores: ${error.message}`);
+    });
+}
+
+
 
 function downloadReporte(reporteId) {
     showLoadingMessage('Preparando descarga...');
@@ -489,22 +553,37 @@ function deleteReporte(reporteId) {
     });
 }
 
-function toggleAdvancedFilters() {
-    const filtersDiv = document.getElementById('additionalFilters');
-    const isVisible = filtersDiv.style.display !== 'none';
-    
-    filtersDiv.style.display = isVisible ? 'none' : 'block';
-    
-    const button = event.target.closest('button');
-    button.innerHTML = isVisible 
-        ? '<i class="bi bi-funnel me-1"></i>Filtros Avanzados'
-        : '<i class="bi bi-funnel-fill me-1"></i>Ocultar Filtros';
-}
+
 
 // Funciones de utilidad para reportes
 function getAuthHeader() {
     const token = localStorage.getItem('access_token');
-    return token ? `Bearer ${token}` : '';
+    if (token) {
+        return `Bearer ${token}`;
+    }
+    
+    // Si no hay token JWT, intentar usar la sesión de Django
+    const csrftoken = getCookie('csrftoken');
+    if (csrftoken) {
+        return '';  // Sin Bearer, usar cookies de sesión
+    }
+    
+    return '';
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 
 function formatDate(dateString) {

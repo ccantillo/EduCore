@@ -1,4 +1,4 @@
 # services.py para la app users
-# Aquí irá la lógica de negocio relacionada con usuarios.
+# Lógica principal para usuarios - registros, autenticación, etc.
 
-# Servicios serán agregados posteriormente. 
+# TODO: lógica de negocio cuando la necesitemos 

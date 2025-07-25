@@ -1,5 +1,5 @@
 # urls.py para la app materias
-# Aquí se definirán las rutas de la app materias.
+# Rutas para ver materias, buscar por prerrequisitos, filtrar por período
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter

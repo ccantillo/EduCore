@@ -1,5 +1,5 @@
 # decorators.py para la app common
-# Aquí se implementarán decoradores personalizados reutilizables.
+# Decoradores custom para validar permisos, cache, logging, etc.
 
 from functools import wraps
 from django.http import JsonResponse

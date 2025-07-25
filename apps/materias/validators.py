@@ -1,4 +1,4 @@
 # validators.py para la app materias
-# Aquí se implementarán validadores personalizados para materias.
+# Validaciones para materias - prerrequisitos, cupos, conflictos de horario
 
-# Validadores serán agregados posteriormente. 
+# TODO: validadores cuando los necesitemos 

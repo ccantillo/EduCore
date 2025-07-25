@@ -1,5 +1,5 @@
 # urls.py para la app inscripciones
-# Aquí se definirán las rutas de la app inscripciones.
+# Rutas para inscribirse a materias, ver mis inscripciones, calificaciones
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter

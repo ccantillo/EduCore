@@ -127,7 +127,7 @@ class TestUserModel(TestCase):
         User.objects.create_user(**self.user_data)
         
         # Django por defecto no tiene email único, pero validamos que no lance error
-        # Si en el futuro se añade unique=True a email, este test funcionará
+        # Si luego hacemos el email único, este test seguirá funcionando
         try:
             User.objects.create_user(
                 username='otheruser',

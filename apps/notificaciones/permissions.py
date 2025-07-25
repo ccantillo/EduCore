@@ -1,4 +1,4 @@
 # permissions.py para la app notificaciones
-# Aquí se definirán los permisos personalizados para notificaciones.
+# Permisos para notificaciones - cada usuario ve solo las suyas
 
-# Permisos serán agregados posteriormente. 
+# TODO: permisos cuando los necesitemos 

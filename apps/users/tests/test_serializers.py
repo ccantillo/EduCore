@@ -221,7 +221,7 @@ class TestUserCreateSerializer(TestCase):
         """Test que fallan campos requeridos."""
         data = {
             'username': 'newuser',
-            # Faltan password, etc.
+            # TODO: agregar password y otros campos
         }
         
         serializer = UserCreateSerializer(data=data)

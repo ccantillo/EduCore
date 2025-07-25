@@ -1,4 +1,4 @@
 # validators.py para la app users
-# Aquí se implementarán validadores personalizados para usuarios.
+# Validaciones custom para usuarios - emails únicos, contraseñas seguras, etc.
 
-# Validadores serán agregados posteriormente. 
+# TODO: agregar validadores cuando los necesitemos 

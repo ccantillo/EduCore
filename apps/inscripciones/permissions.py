@@ -1,4 +1,4 @@
 # permissions.py para la app inscripciones
-# Aquí se definirán los permisos personalizados para inscripciones.
+# Permisos para inscripciones - estudiantes sus propias, profesores las de sus materias
 
-# Permisos serán agregados posteriormente. 
+# TODO: permisos cuando los necesitemos 

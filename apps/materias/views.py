@@ -1,5 +1,5 @@
 # views.py para la app materias
-# Aquí se implementarán las vistas relacionadas con materias.
+# Vistas para listar materias, ver detalles, manejar prerrequisitos
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action

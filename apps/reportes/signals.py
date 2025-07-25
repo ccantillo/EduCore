@@ -1,4 +1,4 @@
 # signals.py para la app reportes
-# Aquí se implementarán señales relacionadas con reportes.
+# Señales automáticas - notificar cuando se completa un reporte
 
-# Señales serán agregadas posteriormente. 
+# TODO: señales cuando las necesitemos 

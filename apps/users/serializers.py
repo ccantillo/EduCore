@@ -1,5 +1,5 @@
 # serializers.py para la app users
-# Aquí se definirán los serializers para los modelos de usuario.
+# Serializers para convertir datos de usuarios a JSON y viceversa
 
 from rest_framework import serializers
 from django.contrib.auth import authenticate

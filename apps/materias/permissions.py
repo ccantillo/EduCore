@@ -1,4 +1,4 @@
 # permissions.py para la app materias
-# Aquí se definirán los permisos personalizados para materias.
+# Permisos específicos - solo profesores pueden editar, estudiantes solo ver
 
-# Permisos serán agregados posteriormente. 
+# TODO: permisos cuando los necesitemos 

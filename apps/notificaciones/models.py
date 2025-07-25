@@ -1,5 +1,5 @@
 # models.py para la app notificaciones
-# Aquí se definirán los modelos relacionados con notificaciones y mensajes.
+# Todo sobre notificaciones - emails, mensajes in-app, recordatorios
 
 from django.db import models
 from apps.users.models import User

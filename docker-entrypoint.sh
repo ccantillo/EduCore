@@ -18,6 +18,13 @@ echo "✅ Base de datos conectada"
 echo "🔄 Ejecutando migraciones..."
 python manage.py migrate
 
+# Configurar tareas periódicas automáticamente
+# Solo se ejecuta en el servicio web principal, no en celery workers
+if [[ "$1" == *"runserver"* ]] || [[ "$1" == *"gunicorn"* ]] || [[ -z "$1" ]]; then
+    echo "⚙️ Configurando tareas periódicas de Celery Beat..."
+    python manage.py setup_periodic_tasks || echo "⚠️ Error configurando tareas periódicas, continuando..."
+fi
+
 # Crear usuarios de demostración
 echo "👥 Creando usuarios de demostración..."
 python manage.py create_demo_users

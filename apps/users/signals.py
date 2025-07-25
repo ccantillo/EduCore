@@ -24,4 +24,24 @@ def crear_perfil_usuario(sender, instance, created, **kwargs):
             print(f"Perfil creado exitosamente para el usuario: {instance.username}")
         except Exception as e:
             # Log del error pero no fallar la creación del usuario
-            print(f"Error al crear perfil para usuario {instance.username}: {e}") 
+            print(f"Error al crear perfil para usuario {instance.username}: {e}")
+
+
+@receiver(post_save, sender=User)
+def enviar_email_bienvenida_usuario(sender, instance, created, **kwargs):
+    """
+    Enviar email de bienvenida cuando se crea un nuevo usuario.
+    Se ejecuta de forma asíncrona para no bloquear la creación del usuario.
+    """
+    if created and instance.email:
+        try:
+            # Importar la tarea aquí para evitar importaciones circulares
+            from .tasks import enviar_email_bienvenida
+            
+            # Ejecutar tarea asíncrona para envío de email
+            enviar_email_bienvenida.delay(instance.id)
+            print(f"Tarea de email de bienvenida programada para {instance.username}")
+            
+        except Exception as e:
+            # Log del error pero no fallar la creación del usuario
+            print(f"Error al programar email de bienvenida para {instance.username}: {e}") 

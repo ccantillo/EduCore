@@ -136,11 +136,20 @@
 - ✅ Corregidos problemas de autenticación añadiendo soporte para SessionAuthentication en DRF
 - ✅ Solucionados errores 401 en endpoints por configuración incorrecta de permisos múltiples
 
-## [2025-07-25]
+### [2025-07-25] (Continued)
 - ✅ Fixed dashboard template errors by creating missing `dashboard_admin.html` and `dashboard_profesor.html` templates
 - ✅ Resolved 401 authentication errors by adding SessionAuthentication support for frontend cookies
 - ✅ Fixed ViewSet permissions to use proper role-based access control with dynamic `get_permissions()` methods
 - ✅ Enhanced reportes download endpoint with comprehensive error handling for missing reports and files
 - ✅ Fixed frontend hardcoded data (est_001, prof_001) to use dynamic API data from `/api/v1/reportes/reportes/`
 - ✅ Created test data and CSV files to support development and testing
-- ✅ Improved error messages and user feedback throughout the application 
+- ✅ Improved error messages and user feedback throughout the application
+
+### [2025-01-24] (PDF Compliance Updates)
+- ✅ **Reportes CSV - PDF Compliance**: Implemented exact PDF-compliant endpoints `/api/reportes/estudiante/{id}/` and `/api/reportes/profesor/{id}/` that return CSV directly
+- ✅ **Decoradores**: Implemented prerequisite validation decorator `@validate_prerequisites` and credit limits decorator `@validate_credit_limits` in `apps/common/decorators.py`
+- ✅ **Applied Decorators**: Applied both decorators to the `InscripcionViewSet.create()` method for automatic validation during enrollment
+- ✅ **Schema Documentation**: Created complete Entity Relationship Diagram (ERD) showing all database models and relationships
+- ✅ **Project Flow Documentation**: Created comprehensive project flow diagram showing authentication, role-based access, validation flow, and system architecture
+- ✅ **Updated URLs**: Added specific URL patterns that match PDF requirements exactly while maintaining existing advanced functionality
+- ✅ **Enhanced CSV Reports**: Implemented direct CSV response with proper headers including name, subjects, grades, status, and average as required by PDF 

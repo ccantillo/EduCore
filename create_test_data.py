@@ -199,7 +199,7 @@ def crear_datos_prueba():
             print(f"  ✅ Materia creada: {materia.codigo} - {materia.nombre}")
         materias_creadas.append(materia)
     
-    # 5. Crear prerrequisitos
+    # 5. Crear prerrequisitos (simplificados)
     print("🔗 Creando prerrequisitos...")
     mat101 = Materia.objects.get(codigo='MAT101')
     mat201 = Materia.objects.get(codigo='MAT201')
@@ -220,49 +220,70 @@ def crear_datos_prueba():
         if created:
             print(f"  ✅ Prerrequisito: {materia.codigo} requiere {prereq.codigo}")
     
-    # 6. Crear inscripciones
+    # 6. Crear inscripciones (respetando prerrequisitos)
     print("📝 Creando inscripciones...")
-    inscripciones_data = [
-        # María García
-        (estudiantes_creados[0], mat101, periodo_actual, 'activa'),
-        (estudiantes_creados[0], Materia.objects.get(codigo='FIS101'), periodo_actual, 'activa'),
-        (estudiantes_creados[0], prg101, periodo_actual, 'activa'),
-        
-        # Juan López
-        (estudiantes_creados[1], mat101, periodo_actual, 'activa'),
-        (estudiantes_creados[1], Materia.objects.get(codigo='QUI101'), periodo_actual, 'activa'),
-        (estudiantes_creados[1], prg101, periodo_actual, 'aprobada'),
-        
-        # Ana Torres
-        (estudiantes_creados[2], Materia.objects.get(codigo='FIS101'), periodo_actual, 'activa'),
-        (estudiantes_creados[2], Materia.objects.get(codigo='QUI101'), periodo_actual, 'activa'),
-        (estudiantes_creados[2], prg101, periodo_actual, 'aprobada'),
-        
-        # Luis Morales
+    
+    # Primero crear inscripciones que serán aprobadas (prerrequisitos)
+    inscripciones_aprobadas = [
+        # Luis Morales - aprueba prerrequisitos
         (estudiantes_creados[3], mat101, periodo_actual, 'aprobada'),
         (estudiantes_creados[3], prg101, periodo_actual, 'aprobada'),
-        (estudiantes_creados[3], prg201, periodo_actual, 'activa'),
         
-        # Sofía Ramírez
-        (estudiantes_creados[4], mat101, periodo_actual, 'activa'),
-        (estudiantes_creados[4], Materia.objects.get(codigo='FIS101'), periodo_actual, 'activa'),
+        # Juan López - aprueba programación I
+        (estudiantes_creados[1], prg101, periodo_actual, 'aprobada'),
+        
+        # Ana Torres - aprueba programación I
+        (estudiantes_creados[2], prg101, periodo_actual, 'aprobada'),
     ]
     
-    inscripciones_creadas = []
-    for estudiante, materia, periodo, estado in inscripciones_data:
+    print("📝 Creando inscripciones aprobadas (prerrequisitos)...")
+    for estudiante, materia, periodo, estado in inscripciones_aprobadas:
         inscripcion, created = Inscripcion.objects.get_or_create(
             estudiante=estudiante,
             materia=materia,
             periodo=periodo,
             defaults={'estado': estado}
-                        )
+        )
         if created:
-            # Si está aprobada, asignar una nota
-            if estado == 'aprobada':
-                inscripcion.nota_final = Decimal('4.2')
-                inscripcion.save()
-            
-            print(f"  ✅ Inscripción: {estudiante.get_full_name()} -> {materia.codigo}")
+            # Asignar nota aprobada
+            inscripcion.nota_final = Decimal('4.2')
+            inscripcion.save()
+            print(f"  ✅ Inscripción aprobada: {estudiante.get_full_name()} -> {materia.codigo}")
+    
+    # Luego crear inscripciones activas (solo materias sin prerrequisitos complejos)
+    inscripciones_activas = [
+        # María García - materias básicas sin prerrequisitos
+        (estudiantes_creados[0], mat101, periodo_actual, 'activa'),
+        (estudiantes_creados[0], Materia.objects.get(codigo='QUI101'), periodo_actual, 'activa'),
+        (estudiantes_creados[0], prg101, periodo_actual, 'activa'),
+        
+        # Juan López - materias básicas
+        (estudiantes_creados[1], mat101, periodo_actual, 'activa'),
+        (estudiantes_creados[1], Materia.objects.get(codigo='QUI101'), periodo_actual, 'activa'),
+        
+        # Ana Torres - materias básicas
+        (estudiantes_creados[2], mat101, periodo_actual, 'activa'),
+        (estudiantes_creados[2], Materia.objects.get(codigo='QUI101'), periodo_actual, 'activa'),
+        
+        # Luis Morales - puede acceder a materias avanzadas (ya aprobó prerrequisitos)
+        (estudiantes_creados[3], prg201, periodo_actual, 'activa'),  # Ya aprobó PRG101
+        
+        # Sofía Ramírez - materias básicas
+        (estudiantes_creados[4], mat101, periodo_actual, 'activa'),
+        (estudiantes_creados[4], Materia.objects.get(codigo='QUI101'), periodo_actual, 'activa'),
+    ]
+    
+    print("📝 Creando inscripciones activas...")
+    inscripciones_creadas = []
+    for estudiante, materia, periodo, estado in inscripciones_activas:
+        inscripcion, created = Inscripcion.objects.get_or_create(
+            estudiante=estudiante,
+            materia=materia,
+            periodo=periodo,
+            defaults={'estado': estado}
+        )
+        if created:
+            print(f"  ✅ Inscripción activa: {estudiante.get_full_name()} -> {materia.codigo}")
             inscripciones_creadas.append(inscripcion)
             
             # Crear notificación de inscripción

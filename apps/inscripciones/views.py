@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Count, Avg, Sum
 from django.shortcuts import get_object_or_404
+from apps.common.decorators import validate_prerequisites, validate_credit_limits
 
 from .models import Inscripcion, Calificacion
 from .serializers import (
@@ -58,6 +59,15 @@ class InscripcionViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         
         return [permission() for permission in permission_classes]
+    
+    @validate_prerequisites
+    @validate_credit_limits
+    def create(self, request, *args, **kwargs):
+        """
+        Crear nueva inscripción con validación de prerrequisitos y límites de créditos.
+        Los decoradores se aplican para validar las reglas de negocio.
+        """
+        return super().create(request, *args, **kwargs)
     
     def get_queryset(self):
         """

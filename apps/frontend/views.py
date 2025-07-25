@@ -158,11 +158,13 @@ def api_materias(request):
                 'id': materia.id,
                 'codigo': materia.codigo,
                 'nombre': materia.nombre,
+                'descripcion': materia.descripcion or '',
                 'creditos': materia.creditos,
+                'estado': materia.estado,
                 'profesor': materia.profesor.get_full_name() if materia.profesor else 'Sin asignar',
-                'estudiantes_count': materia.estudiantes_inscritos_count
+                'estudiantes_count': materia.inscripciones.filter(estado='activa').count()
             }
-            for materia in materias.select_related('profesor')
+            for materia in materias.select_related('profesor').prefetch_related('inscripciones')
         ]
         
         return JsonResponse({'materias': data})

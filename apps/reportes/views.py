@@ -1,7 +1,8 @@
 import os
+import csv
 from django.http import HttpResponse, FileResponse
 from django.conf import settings
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -466,6 +467,184 @@ class ReporteProfesorViewSet(viewsets.ViewSet):
                 {'error': 'Profesor no encontrado.'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        except Exception as e:
+            return Response(
+                {'error': f'Error al generar reporte: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            ) 
+
+
+# Nuevos endpoints que cumplen exactamente con los requisitos del PDF
+class EstudianteReportAPIView(views.APIView):
+    """
+    Endpoint específico para generar reportes CSV de estudiantes.
+    URL: /api/reportes/estudiante/{id}/
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, id):
+        """Generar y retornar CSV del estudiante directamente."""
+        try:
+            from apps.users.models import User
+            from apps.inscripciones.models import Inscripcion, Calificacion
+            
+            # Verificar permisos
+            if not (request.user.is_admin or request.user.is_profesor):
+                return Response(
+                    {'error': 'No tienes permisos para generar reportes de estudiantes.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Verificar que el estudiante existe
+            try:
+                estudiante = User.objects.get(id=id, role='estudiante')
+            except User.DoesNotExist:
+                return Response(
+                    {'error': 'Estudiante no encontrado.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Crear respuesta CSV
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="reporte_estudiante_{estudiante.username}_{timezone.now().strftime("%Y%m%d")}.csv"'
+            
+            writer = csv.writer(response)
+            
+            # Headers del CSV
+            writer.writerow([
+                'Nombre',
+                'Materia',
+                'Código',
+                'Créditos',
+                'Calificación',
+                'Estado',
+                'Promedio General'
+            ])
+            
+            # Obtener inscripciones del estudiante
+            inscripciones = Inscripcion.objects.filter(
+                estudiante=estudiante
+            ).select_related(
+                'materia',
+                'periodo'
+            ).prefetch_related('calificaciones')
+            
+            # Calcular promedio general
+            calificaciones_con_nota = []
+            for inscripcion in inscripciones:
+                for calificacion in inscripcion.calificaciones.all():
+                    if calificacion.nota is not None:
+                        calificaciones_con_nota.append(calificacion.nota)
+            
+            promedio_general = sum(calificaciones_con_nota) / len(calificaciones_con_nota) if calificaciones_con_nota else 0.0
+            
+            # Escribir datos
+            for inscripcion in inscripciones:
+                calificacion = inscripcion.calificaciones.first()
+                nota = calificacion.nota if calificacion else None
+                estado = 'Aprobada' if nota and nota >= 3.0 else 'Reprobada' if nota else 'Pendiente'
+                
+                writer.writerow([
+                    f"{estudiante.first_name} {estudiante.last_name}",
+                    inscripcion.materia.nombre,
+                    inscripcion.materia.codigo,
+                    inscripcion.materia.creditos,
+                    nota if nota else '',
+                    estado,
+                    f"{promedio_general:.2f}"
+                ])
+            
+            return response
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Error al generar reporte: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ProfesorReportAPIView(views.APIView):
+    """
+    Endpoint específico para generar reportes CSV de profesores.
+    URL: /api/reportes/profesor/{id}/
+    """
+    permission_classes = [IsAdminUser]
+    
+    def get(self, request, id):
+        """Generar y retornar CSV del profesor directamente."""
+        try:
+            from apps.users.models import User
+            from apps.materias.models import Materia
+            from apps.inscripciones.models import Inscripcion
+            
+            # Verificar que el profesor existe
+            try:
+                profesor = User.objects.get(id=id, role='profesor')
+            except User.DoesNotExist:
+                return Response(
+                    {'error': 'Profesor no encontrado.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Crear respuesta CSV
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="reporte_profesor_{profesor.username}_{timezone.now().strftime("%Y%m%d")}.csv"'
+            
+            writer = csv.writer(response)
+            
+            # Headers del CSV
+            writer.writerow([
+                'Nombre Profesor',
+                'Materia',
+                'Código',
+                'Créditos',
+                'Estudiantes Inscritos',
+                'Promedio Materia',
+                'Estado'
+            ])
+            
+            # Obtener materias del profesor
+            materias = Materia.objects.filter(
+                profesor=profesor
+            ).prefetch_related(
+                'inscripciones__calificaciones',
+                'inscripciones__estudiante'
+            )
+            
+            # Escribir datos por materia
+            for materia in materias:
+                inscripciones = materia.inscripciones.all()
+                estudiantes_inscritos = inscripciones.count()
+                
+                # Calcular promedio de la materia
+                calificaciones = []
+                for inscripcion in inscripciones:
+                    for calificacion in inscripcion.calificaciones.all():
+                        if calificacion.nota is not None:
+                            calificaciones.append(calificacion.nota)
+                
+                promedio_materia = sum(calificaciones) / len(calificaciones) if calificaciones else 0.0
+                
+                # Determinar estado
+                todos_calificados = all(
+                    any(cal.nota is not None for cal in insc.calificaciones.all()) 
+                    for insc in inscripciones
+                ) if inscripciones.exists() else True
+                
+                estado = 'Finalizada' if todos_calificados else 'En Curso'
+                
+                writer.writerow([
+                    f"{profesor.first_name} {profesor.last_name}",
+                    materia.nombre,
+                    materia.codigo,
+                    materia.creditos,
+                    estudiantes_inscritos,
+                    f"{promedio_materia:.2f}",
+                    estado
+                ])
+            
+            return response
+            
         except Exception as e:
             return Response(
                 {'error': f'Error al generar reporte: {str(e)}'},

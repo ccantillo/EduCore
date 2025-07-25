@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido al Sistema Académico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .welcome-title {
+            color: #27ae60;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .user-info h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .info-item {
+            margin: 10px 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #34495e;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #bdc3c7;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .highlight {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎓 Sistema Académico</div>
+            <h1 class="welcome-title">¡Bienvenido/a!</h1>
+        </div>
+        
+        <p>Estimado/a <strong>{{ nombre_completo }}</strong>,</p>
+        
+        <p>¡Es un placer darte la bienvenida al Sistema Académico! Tu cuenta ha sido creada exitosamente y ya puedes comenzar a usar la plataforma.</p>
+        
+        <div class="user-info">
+            <h3>📋 Detalles de tu cuenta:</h3>
+            <div class="info-item">
+                <span class="info-label">👤 Usuario:</span> {{ usuario.username }}
+            </div>
+            <div class="info-item">
+                <span class="info-label">📧 Email:</span> {{ usuario.email }}
+            </div>
+            <div class="info-item">
+                <span class="info-label">🏷️ Rol:</span> {{ rol }}
+            </div>
+            <div class="info-item">
+                <span class="info-label">📅 Fecha de registro:</span> {{ usuario.date_joined|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+        
+        {% if rol == "Estudiante" %}
+        <p>Como <strong>estudiante</strong>, podrás:</p>
+        <ul>
+            <li>📚 Consultar materias disponibles</li>
+            <li>✏️ Inscribirte en materias</li>
+            <li>📊 Ver tus calificaciones</li>
+            <li>🔔 Recibir notificaciones importantes</li>
+        </ul>
+        {% elif rol == "Profesor" %}
+        <p>Como <strong>profesor</strong>, podrás:</p>
+        <ul>
+            <li>👥 Gestionar tus materias asignadas</li>
+            <li>✅ Calificar estudiantes</li>
+            <li>📈 Generar reportes académicos</li>
+            <li>📧 Recibir resúmenes semanales</li>
+        </ul>
+        {% elif rol == "Administrador" %}
+        <p>Como <strong>administrador</strong>, tendrás acceso completo a:</p>
+        <ul>
+            <li>👥 Gestión de usuarios</li>
+            <li>📚 Administración de materias</li>
+            <li>📊 Reportes y estadísticas</li>
+            <li>⚙️ Configuración del sistema</li>
+        </ul>
+        {% endif %}
+        
+        <div style="text-align: center;">
+            <a href="{{ sitio_web }}" class="cta-button">🚀 Acceder al Sistema</a>
+        </div>
+        
+        <p><strong>Importante:</strong> Tu contraseña fue establecida por el administrador. Te recomendamos cambiarla en tu primer inicio de sesión para mayor seguridad.</p>
+        
+        <p>Si tienes alguna pregunta o necesitas ayuda, no dudes en contactar al administrador del sistema.</p>
+        
+        <p>¡Esperamos que tengas una excelente experiencia académica! 🎓</p>
+        
+        <div class="footer">
+            <p>Este es un mensaje automático del Sistema Académico.<br>
+            Por favor, no respondas a este email.</p>
+            <p><em>Generado el {{ "now"|date:"d/m/Y H:i" }}</em></p>
+        </div>
+    </div>
+</body>
+</html> 

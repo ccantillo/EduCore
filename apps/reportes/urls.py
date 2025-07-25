@@ -1,5 +1,5 @@
 # urls.py para la app reportes
-# Aquí se definirán las rutas de la app reportes.
+# Rutas para generar reportes, descargar archivos, ver historial
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter

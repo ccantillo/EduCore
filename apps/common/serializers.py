@@ -1,6 +1,6 @@
 # serializers.py para la app common
-# Aquí se definirán serializers base y mixins reutilizables.
+# Serializers base y mixins que pueden heredar las otras apps
 
 from rest_framework import serializers
 
-# Serializers serán agregados posteriormente. 
+# TODO: serializers base cuando los necesitemos 

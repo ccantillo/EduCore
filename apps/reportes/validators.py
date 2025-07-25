@@ -1,4 +1,4 @@
 # validators.py para la app reportes
-# Aquí se implementarán validadores personalizados para reportes.
+# Validaciones para reportes - rangos de fechas, formatos válidos
 
-# Validadores serán agregados posteriormente. 
+# TODO: validadores cuando los necesitemos 

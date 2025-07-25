@@ -1,5 +1,5 @@
 # urls.py para la app frontend
-# Aquí se definirán las rutas de la interfaz web.
+# Rutas para la interfaz web - páginas HTML, formularios, dashboards
 
 from django.urls import path
 from . import views

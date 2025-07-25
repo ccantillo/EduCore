@@ -1,5 +1,5 @@
 # models.py para la app materias
-# Aquí se definirán los modelos relacionados con materias y prerrequisitos.
+# Todo sobre materias, prerrequisitos, períodos académicos, etc.
 
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -75,7 +75,7 @@ class Materia(models.Model):
         return f"{self.codigo} - {self.nombre}"
     
     def clean(self):
-        """Validaciones personalizadas del modelo."""
+        """Validamos que los datos de la materia sean correctos."""
         super().clean()
         
         # Validar que el profesor tenga rol de profesor
@@ -143,7 +143,7 @@ class Prerrequisito(models.Model):
         return f"{self.materia.codigo} requiere {self.prerrequisito.codigo}"
     
     def clean(self):
-        """Validaciones personalizadas."""
+        """Validamos que no haya prerrequisitos circulares."""
         super().clean()
         
         # Evitar prerrequisito circular
@@ -215,7 +215,7 @@ class Periodo(models.Model):
         return f"{self.nombre} ({self.get_estado_display()})"
     
     def clean(self):
-        """Validaciones personalizadas."""
+        """Validamos las fechas del período académico."""
         super().clean()
         
         if self.fecha_inicio >= self.fecha_fin:

@@ -1,5 +1,5 @@
 # serializers.py para la app materias
-# Aquí se definirán los serializers para los modelos de materias.
+# Serializers para materias - incluir prerrequisitos, créditos, horarios
 
 from rest_framework import serializers
 from .models import Materia, Prerrequisito, Periodo
@@ -99,7 +99,7 @@ class PrerrequisitoCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
-        """Validaciones personalizadas."""
+        """Validamos que no haya prerrequisitos circulares."""
         materia = attrs.get('materia')
         prerrequisito = attrs.get('prerrequisito')
         
@@ -152,7 +152,7 @@ class PeriodoCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
-        """Validaciones personalizadas."""
+        """Validamos las fechas del período académico."""
         fecha_inicio = attrs.get('fecha_inicio')
         fecha_fin = attrs.get('fecha_fin')
         

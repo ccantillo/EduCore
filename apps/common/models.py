@@ -1,6 +1,6 @@
 # models.py para la app common
-# Aquí se definirán modelos comunes y abstractos reutilizables.
+# Modelos base que usamos en todas las apps - timestamps, soft deletes, etc.
 
 from django.db import models
 
-# Modelos serán agregados posteriormente. 
+# TODO: modelos base cuando los necesitemos 

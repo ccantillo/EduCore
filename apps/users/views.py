@@ -1,5 +1,5 @@
 # views.py para la app users
-# Aquí se implementarán las vistas relacionadas con usuarios y autenticación.
+# Vistas para usuarios y autenticación del sistema
 
 from rest_framework import status, generics, viewsets
 from rest_framework.decorators import action

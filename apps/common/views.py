@@ -1,6 +1,6 @@
 # views.py para la app common
-# Aquí se implementarán vistas base y mixins reutilizables.
+# Vistas base y mixins que heredan las otras apps
 
 from rest_framework import views
 
-# Vistas serán agregadas posteriormente. 
+# TODO: vistas base cuando las necesitemos 

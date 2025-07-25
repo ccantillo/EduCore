@@ -1,5 +1,5 @@
 # models.py para la app inscripciones
-# Aquí se definirán los modelos relacionados con inscripciones de estudiantes a materias.
+# Todo sobre inscripciones - estados, calificaciones, períodos de matrícula
 
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -83,7 +83,7 @@ class Inscripcion(models.Model):
         return f"{self.estudiante.username} - {self.materia.codigo} ({self.periodo.nombre})"
     
     def clean(self):
-        """Validaciones personalizadas del modelo."""
+        """Validamos que el estudiante pueda inscribirse a esta materia."""
         super().clean()
         
         # Validar que el estudiante tenga rol de estudiante
@@ -173,8 +173,8 @@ class Inscripcion(models.Model):
 
 class Calificacion(models.Model):
     """
-    Modelo para manejar calificaciones parciales de una inscripción.
-    Permite registrar múltiples evaluaciones por materia.
+    Calificaciones de los estudiantes - parciales, finales, trabajos, etc.
+    Cada inscripción puede tener varias notas con diferentes pesos.
     """
     
     inscripcion = models.ForeignKey(
@@ -235,7 +235,7 @@ class Calificacion(models.Model):
         return f"{self.inscripcion} - {self.get_tipo_display()}: {self.nota}"
     
     def clean(self):
-        """Validaciones personalizadas."""
+        """Validamos que los pesos no se pasen del 100%."""
         super().clean()
         
         # Validar que el peso total no exceda 100%

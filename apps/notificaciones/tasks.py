@@ -1,7 +1,7 @@
 # tasks.py para la app notificaciones
-# Aquí se implementarán tareas asíncronas relacionadas con notificaciones.
+# Tareas de notificaciones - envío masivo de emails, limpieza de antiguas
 
-# Tareas serán agregadas posteriormente. 
+# TODO: tareas cuando las necesitemos 
 from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta

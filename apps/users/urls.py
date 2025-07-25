@@ -1,5 +1,5 @@
 # urls.py para la app users
-# Aquí se definirán las rutas de la app users.
+# Rutas para login, registro, perfil de usuario, etc.
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter

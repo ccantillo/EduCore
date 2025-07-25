@@ -1,5 +1,5 @@
 # serializers.py para la app inscripciones
-# Aquí se definirán los serializers para los modelos de inscripciones.
+# Serializers para inscripciones - incluir materia, estado, calificaciones
 
 from rest_framework import serializers
 from .models import Inscripcion, Calificacion
@@ -39,7 +39,7 @@ class CalificacionCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
-        """Validaciones personalizadas."""
+        """Validamos que se pueda crear esta calificación."""
         inscripcion = attrs.get('inscripcion')
         tipo = attrs.get('tipo')
         peso = attrs.get('peso')
@@ -106,7 +106,7 @@ class InscripcionCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
-        """Validaciones personalizadas."""
+        """Validamos que se pueda crear la inscripción."""
         estudiante = attrs.get('estudiante')
         materia = attrs.get('materia')
         periodo = attrs.get('periodo')
@@ -147,7 +147,7 @@ class InscripcionUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
-        """Validaciones personalizadas."""
+        """Validamos los cambios de estado de la inscripción."""
         estado = attrs.get('estado')
         fecha_retiro = attrs.get('fecha_retiro')
         

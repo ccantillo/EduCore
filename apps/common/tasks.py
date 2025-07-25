@@ -1,4 +1,4 @@
 # tasks.py para la app common
-# Aquí se implementarán tareas asíncronas comunes.
+# Tareas que comparten varias apps - envío de emails, limpieza de archivos
 
-# Tareas serán agregadas posteriormente. 
+# TODO: tareas cuando las necesitemos 

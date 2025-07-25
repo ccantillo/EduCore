@@ -1,4 +1,4 @@
 # tasks.py para la app users
-# Aquí se implementarán tareas asíncronas relacionadas con usuarios.
+# Tareas en background - envío de emails de bienvenida, limpieza de sesiones, etc.
 
-# Tareas serán agregadas posteriormente. 
+# TODO: tareas en background cuando las necesitemos 

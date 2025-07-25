@@ -1,8 +1,8 @@
 # urls.py para la app common
-# Aquí se definirán las rutas comunes y utilitarias.
+# Rutas que no pertenecen a ninguna app específica - health check, metrics
 
 from django.urls import path
 
 urlpatterns = [
-    # Rutas serán agregadas posteriormente.
+    # TODO: rutas cuando las necesitemos
 ] 

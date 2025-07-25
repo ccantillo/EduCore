@@ -1,5 +1,5 @@
 # views.py para la app frontend
-# Aquí se implementarán las vistas web del sistema académico.
+# Vistas para la interfaz web - dashboards, formularios, páginas principales
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required

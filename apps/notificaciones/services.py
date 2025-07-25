@@ -1,4 +1,4 @@
 # services.py para la app notificaciones
-# Aquí irá la lógica de negocio relacionada con notificaciones.
+# Lógica para enviar notificaciones - email, push, SMS según preferencias
 
-# Servicios serán agregados posteriormente. 
+# TODO: lógica de negocio cuando la necesitemos 

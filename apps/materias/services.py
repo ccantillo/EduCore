@@ -1,4 +1,4 @@
 # services.py para la app materias
-# Aquí irá la lógica de negocio relacionada con materias.
+# Lógica para validar prerrequisitos, asignar cupos, verificar horarios
 
-# Servicios serán agregados posteriormente. 
+# TODO: lógica de negocio cuando la necesitemos 

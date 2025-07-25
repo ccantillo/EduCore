@@ -1,4 +1,4 @@
 # signals.py para la app materias
-# Aquí se implementarán señales relacionadas con materias.
+# Señales automáticas - notificar cuando se abren cupos, cambios de horario
 
-# Señales serán agregadas posteriormente. 
+# TODO: señales cuando las necesitemos 

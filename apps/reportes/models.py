@@ -1,5 +1,5 @@
 # models.py para la app reportes
-# Aquí se definirán los modelos relacionados con reportes y exportaciones.
+# Todo sobre reportes - historial de generación, archivos CSV/PDF
 
 from django.db import models
 from apps.users.models import User

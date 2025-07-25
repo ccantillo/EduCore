@@ -1,4 +1,4 @@
 # permissions.py para la app reportes
-# Aquí se definirán los permisos personalizados para reportes.
+# Permisos para reportes - admins y profesores pueden generar algunos
 
-# Permisos serán agregados posteriormente. 
+# TODO: permisos cuando los necesitemos 

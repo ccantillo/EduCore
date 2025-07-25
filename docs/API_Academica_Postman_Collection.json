@@ -1,0 +1,1087 @@
+{
+  "info": {
+    "name": "API Académica - Sistema de Gestión Universitaria",
+    "description": "Colección completa de endpoints para el sistema académico con autenticación JWT, gestión de usuarios, materias, inscripciones, notificaciones y reportes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "api-academica-collection"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"estudiante1\",\n  \"email\": \"estudiante1@example.com\",\n  \"password\": \"password123\",\n  \"password_confirm\": \"password123\",\n  \"first_name\": \"Juan\",\n  \"last_name\": \"Pérez\",\n  \"role\": \"estudiante\",\n  \"phone\": \"+573001234567\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/auth/register/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "auth", "register", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', responseJson.tokens.access);",
+                  "    pm.collectionVariables.set('refresh_token', responseJson.tokens.refresh);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"estudiante1\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "auth", "login", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', responseJson.access);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/token/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "token", "refresh", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{access_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/token/verify/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "token", "verify", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 Users Management",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/users/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "users", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "users", "me", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "users", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Juan Carlos\",\n  \"last_name\": \"Pérez García\",\n  \"phone\": \"+573009876543\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "users", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"password123\",\n  \"new_password\": \"newpassword456\",\n  \"new_password_confirm\": \"newpassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/users/change_password/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "users", "change_password", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/users/1/profile/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "users", "1", "profile", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"birth_date\": \"1995-05-15\",\n  \"address\": \"Calle 123 #45-67, Bogotá, Colombia\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/users/1/update_profile/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "users", "1", "update_profile", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📚 Materias",
+      "item": [
+        {
+          "name": "List Materias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/materias/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "materias", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Materia Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/materias/1/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "materias", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Materia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"MAT101\",\n  \"nombre\": \"Cálculo I\",\n  \"descripcion\": \"Curso introductorio de cálculo diferencial e integral\",\n  \"creditos\": 4,\n  \"estado\": \"activa\",\n  \"profesor\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/materias/materias/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "materias", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Materia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Curso avanzado de cálculo diferencial e integral con aplicaciones\",\n  \"creditos\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/materias/materias/1/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "materias", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Materias Disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/materias/disponibles/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "materias", "disponibles", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Materias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/materias/buscar/?q=cálculo",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "materias", "buscar", ""],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cálculo"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mis Materias (Profesor)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/materias/mis_materias/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "materias", "mis_materias", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔗 Prerrequisitos",
+      "item": [
+        {
+          "name": "List Prerrequisitos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/prerrequisitos/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "prerrequisitos", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Prerrequisito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"materia\": 2,\n  \"prerrequisito\": 1,\n  \"tipo\": \"obligatorio\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/materias/prerrequisitos/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "prerrequisitos", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Prerrequisitos por Materia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/prerrequisitos/por_materia/?materia_id=2",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "prerrequisitos", "por_materia", ""],
+              "query": [
+                {
+                  "key": "materia_id",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📅 Periodos",
+      "item": [
+        {
+          "name": "List Periodos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/periodos/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "periodos", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Periodo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"2025-1\",\n  \"fecha_inicio\": \"2025-01-15\",\n  \"fecha_fin\": \"2025-05-15\",\n  \"estado\": \"inscripciones\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/materias/periodos/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "periodos", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Periodos Activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/materias/periodos/activos/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "periodos", "activos", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar Estado Periodo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"en_curso\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/materias/periodos/1/cambiar_estado/",
+              "host": ["{{base_url}}"],
+              "path": ["materias", "periodos", "1", "cambiar_estado", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📝 Inscripciones",
+      "item": [
+        {
+          "name": "List Inscripciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inscripcion Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/1/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Inscripcion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estudiante\": 3,\n  \"materia\": 1,\n  \"periodo\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Inscripcion",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"retirada\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/1/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mis Inscripciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/mis_inscripciones/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", "mis_inscripciones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inscripciones Activas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/activas/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", "activas", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Promedio Estudiante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/promedio_estudiante/?estudiante_id=3",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", "promedio_estudiante", ""],
+              "query": [
+                {
+                  "key": "estudiante_id",
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Finalizar Materia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nota_final\": 4.5,\n  \"estado\": \"aprobada\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inscripciones/inscripciones/1/finalizar/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "inscripciones", "1", "finalizar", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Calificaciones",
+      "item": [
+        {
+          "name": "List Calificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inscripciones/calificaciones/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "calificaciones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Calificacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inscripcion\": 1,\n  \"tipo\": \"parcial_1\",\n  \"nota\": 4.2,\n  \"peso\": 30,\n  \"comentarios\": \"Excelente desempeño en el primer parcial\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inscripciones/calificaciones/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "calificaciones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Create Calificaciones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calificaciones\": [\n    {\n      \"inscripcion\": 1,\n      \"tipo\": \"parcial_2\",\n      \"nota\": 3.8,\n      \"peso\": 30,\n      \"comentarios\": \"Buen trabajo\"\n    },\n    {\n      \"inscripcion\": 2,\n      \"tipo\": \"parcial_2\",\n      \"nota\": 4.5,\n      \"peso\": 30,\n      \"comentarios\": \"Excelente\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/inscripciones/calificaciones/bulk_create/",
+              "host": ["{{base_url}}"],
+              "path": ["inscripciones", "calificaciones", "bulk_create", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notificaciones",
+      "item": [
+        {
+          "name": "List Notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notificacion Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/1/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Notificacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": 3,\n  \"tipo\": \"recordatorio\",\n  \"titulo\": \"Recordatorio de Examen\",\n  \"mensaje\": \"Recuerda que el examen de Cálculo I es mañana a las 8:00 AM\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Notificacion",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"leida\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/1/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar como Leída",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/1/marcar_leida/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", "1", "marcar_leida", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Archivar Notificacion",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/1/archivar/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", "1", "archivar", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Notificaciones No Leídas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/no_leidas/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", "no_leidas", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Update Notificaciones",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notificacion_ids\": [1, 2, 3],\n  \"accion\": \"marcar_leidas\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/bulk_update/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", "bulk_update", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Estadísticas Notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notificaciones/notificaciones/estadisticas/",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "notificaciones", "estadisticas", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Reportes",
+      "item": [
+        {
+          "name": "List Reportes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reportes/reportes/",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "reportes", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reporte Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reportes/reportes/1/",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "reportes", "1", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Download Reporte",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reportes/reportes/1/descargar/",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "reportes", "1", "descargar", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Reporte Estudiante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reportes/estudiantes/3/reporte/?periodo_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "estudiantes", "3", "reporte", ""],
+              "query": [
+                {
+                  "key": "periodo_id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Reporte Profesor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reportes/profesores/2/reporte/?periodo_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "profesores", "2", "reporte", ""],
+              "query": [
+                {
+                  "key": "periodo_id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Estadísticas Reportes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reportes/reportes/estadisticas/",
+              "host": ["{{base_url}}"],
+              "path": ["reportes", "reportes", "estadisticas", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📖 Documentation",
+      "item": [
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/swagger/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["swagger", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ReDoc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/redoc/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["redoc", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "OpenAPI Schema",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api-schema/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api-schema", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Verificar si necesitamos autenticación",
+          "if (pm.request.url.path.join('/').includes('auth/register') || ",
+          "    pm.request.url.path.join('/').includes('auth/login') ||",
+          "    pm.request.url.path.join('/').includes('token/') ||",
+          "    pm.request.url.path.join('/').includes('swagger') ||",
+          "    pm.request.url.path.join('/').includes('redoc') ||",
+          "    pm.request.url.path.join('/').includes('api-schema')) {",
+          "    // No necesita autenticación",
+          "    pm.request.removeHeader('Authorization');",
+          "} else {",
+          "    // Necesita autenticación",
+          "    const token = pm.collectionVariables.get('access_token');",
+          "    if (token) {",
+          "        pm.request.headers.add({",
+          "            key: 'Authorization',",
+          "            value: 'Bearer ' + token",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Test común para todos los endpoints",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has proper headers', function () {",
+          "    pm.expect(pm.response.headers.has('Content-Type')).to.be.true;",
+          "});",
+          "",
+          "// Si hay error 401, mostrar mensaje útil",
+          "if (pm.response.code === 401) {",
+          "    pm.test('Authentication required', function () {",
+          "        console.log('💡 Hint: You may need to login first to get an access token');",
+          "        pm.expect(pm.response.code).to.equal(401);",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+} 

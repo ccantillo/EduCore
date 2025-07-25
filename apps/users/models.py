@@ -29,7 +29,7 @@ class User(AbstractUser):
     
     # Validación de teléfono colombiano
     phone_regex = RegexValidator(
-        regex=r'^\+?57?\d{9,10}$',
+        regex=r'^(\+57)?[0-9]{10}$',
         message="El número de teléfono debe estar en formato: '+573001234567' o '3001234567'"
     )
     
@@ -130,7 +130,8 @@ class Profile(models.Model):
         if not self.student_id and self.user.is_estudiante:
             # Generar código de estudiante único
             last_student = Profile.objects.filter(
-                student_id__isnull=False
+                student_id__isnull=False,
+                student_id__gt=''
             ).order_by('-student_id').first()
             
             if last_student and last_student.student_id:
@@ -145,14 +146,16 @@ class Profile(models.Model):
         if not self.professional_id and self.user.is_profesor:
             # Generar código profesional único
             last_professor = Profile.objects.filter(
-                professional_id__isnull=False
-            ).order_by('-professional_id').first()
+                professional_id__isnull=False,
+                professional_id__gt=''
+            ).exclude(professional_id='').order_by('-professional_id').first()
             
             if last_professor and last_professor.professional_id:
                 try:
-                    last_number = int(last_professor.professional_id)
+                    # Remover la 'P' del inicio y convertir a número
+                    last_number = int(last_professor.professional_id[1:])
                     self.professional_id = f"P{last_number + 1:04d}"
-                except ValueError:
+                except (ValueError, IndexError):
                     self.professional_id = "P0001"
             else:
                 self.professional_id = "P0001"

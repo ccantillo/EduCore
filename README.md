@@ -390,17 +390,136 @@ apps/
 │       └── test_validations.py
 ```
 
+### 🚀 Ejecución de Tests
+
+#### Tests Locales
+
+```bash
+# 1. Activar entorno virtual (si no está activo)
+source env/bin/activate  # Linux/Mac
+# .\env\Scripts\activate  # Windows
+
+# 2. Ejecutar todos los tests
+pytest
+
+# 3. Tests con cobertura detallada
+pytest --cov=apps --cov-report=term-missing
+
+# 4. Tests con reporte HTML
+pytest --cov=apps --cov-report=html
+# Ver reporte: open htmlcov/index.html
+
+# 5. Tests específicos
+pytest apps/users/tests/test_models.py          # Un archivo
+pytest apps/users/tests/test_models.py::TestUserModel  # Una clase
+pytest apps/users/tests/ -v                    # Una app completa
+
+# 6. Tests por patrón
+pytest -k "test_model"                         # Solo tests de modelos
+pytest -k "test_permission"                    # Solo tests de permisos
+pytest -k "not test_views"                     # Excluir tests de views
+
+# 7. Tests con debugging
+pytest -s                                      # Ver prints
+pytest --pdb                                   # Debugger en errores
+pytest --lf                                    # Solo tests que fallaron
+```
+
+#### Tests en Docker
+
+```bash
+# Ejecutar tests en contenedor
+docker-compose exec web pytest
+
+# Tests con cobertura en Docker
+docker-compose exec web pytest --cov=apps --cov-report=term-missing
+
+# Tests específicos en Docker
+docker-compose exec web pytest apps/users/tests/
+
+# Crear contenedor temporal para tests
+docker-compose run --rm web pytest
+```
+
+#### Interpretación de Resultados
+
+**Estado actual del proyecto:**
+- **Cobertura**: 60% (objetivo: 70%)
+- **Tests totales**: 286 tests
+- **Estado**: 242 pasan, 44 fallan
+
+**Ejemplo de salida exitosa:**
+```bash
+================================ test session starts ================================
+collected 286 items
+
+apps/users/tests/test_models.py ................                            [ 85%]
+apps/users/tests/test_views.py ....................                         [100%]
+
+---------- coverage: platform win32, python 3.13.3-final-0 -----------
+Name                          Stmts   Miss  Cover   Missing
+-----------------------------------------------------------
+apps/users/models.py             61      5    92%   138-142
+apps/users/views.py             115     12    89%   84-88, 218
+-----------------------------------------------------------
+TOTAL                          2427    243    90%
+
+========================== 286 passed in 45.23s ==========================
+```
+
+### 🔍 Tests por Funcionalidad
+
+```bash
+# Tests de autenticación
+pytest apps/users/tests/test_views.py::TestAuthViewSet -v
+
+# Tests de validaciones de negocio
+pytest apps/inscripciones/tests/ -k "validation" -v
+
+# Tests de permisos
+pytest apps/users/tests/test_permissions.py -v
+pytest apps/common/tests/test_middleware.py -v
+
+# Tests de modelos
+pytest apps/*/tests/test_models.py -v
+
+# Tests de API endpoints
+pytest apps/*/tests/test_views.py -v
+```
+
+### 🐛 Troubleshooting de Tests
+
+```bash
+# Error de base de datos
+python manage.py migrate --settings=config.settings.testing
+
+# Tests lentos - reutilizar DB
+pytest --reuse-db
+
+# Errores de imports
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+pytest
+
+# Limpiar cache
+pytest --cache-clear
+
+# Problemas de permisos en Docker
+docker-compose exec -u $(id -u):$(id -g) web pytest
+```
+
 ---
 
 ## 📊 Documentación Técnica
 
 ### 🗄️ Esquema de Base de Datos
 
-Ver: [docs/database_schema.md](docs/database_schema.md)
+- **Documentación detallada**: [docs/database_schema.md](docs/database_schema.md)
+- **Diagrama visual renderizado**: [docs/visual_diagrams.md](docs/visual_diagrams.md)
 
 ### 🔄 Diagrama de Flujo
 
-Ver: [docs/project_flow.md](docs/project_flow.md)
+- **Documentación detallada**: [docs/project_flow.md](docs/project_flow.md)
+- **Diagrama visual renderizado**: [docs/visual_diagrams.md](docs/visual_diagrams.md)
 
 ### 🏗️ Arquitectura del Proyecto
 

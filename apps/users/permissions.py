@@ -87,8 +87,16 @@ class IsAdminOrProfesorOrSelf(permissions.BasePermission):
     """
     
     def has_permission(self, request, view):
-        """Verificar si el usuario está autenticado."""
-        return bool(request.user and request.user.is_authenticated)
+        """Verificar si el usuario está autenticado y tiene permisos básicos."""
+        if not (request.user and request.user.is_authenticated):
+            return False
+        
+        # Para el listado, permitir a admins y profesores
+        if view.action == 'list':
+            return request.user.is_admin or request.user.is_profesor
+        
+        # Para otras acciones, verificar autenticación
+        return True
     
     def has_object_permission(self, request, view, obj):
         """Verificar si el usuario puede acceder al objeto específico."""

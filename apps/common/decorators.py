@@ -49,11 +49,11 @@ def validate_prerequisites(view_func):
             # Obtener prerrequisitos de la materia
             prerrequisitos = Prerrequisito.objects.filter(
                 materia=materia
-            ).select_related('materia_prerrequisito')
+            ).select_related('prerrequisito')
             
             # Validar cada prerrequisito
-            for prerrequisito in prerrequisitos:
-                materia_prerrequisito = prerrequisito.materia_prerrequisito
+            for prereq_obj in prerrequisitos:
+                materia_prerrequisito = prereq_obj.prerrequisito
                 
                 # Verificar si el estudiante ha aprobado este prerrequisito
                 inscripcion_prerrequisito = Inscripcion.objects.filter(
